@@ -70,6 +70,8 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 			normIndices.push_back(normalIndex[2]);
 		}
 	}
+
+	fclose(file);
 	
 	for(unsigned int i = 0; i < vertIndices.size(); i++){
 		vertices.push_back(tempVertices[vertIndices[i] - 1]);

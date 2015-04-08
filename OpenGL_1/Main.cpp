@@ -6,7 +6,14 @@
 #include "Shader.h"
 #include "Texture.h"
 
+#define PLAYERS 8
+
 unsigned int ID;
+
+struct Player {
+	char name[1024];
+	float x, y, z;
+};
 
 int main(){
 	// initialize OpenGL window
@@ -25,7 +32,7 @@ int main(){
 	
 	// tell the server the client connected
 		char sendMsg[1024];
-		sprintf(sendMsg, "0Inzuki");
+		sprintf(sendMsg, "+Inzuki");
 	
 		sf::UdpSocket socket;
 		socket.send(sendMsg, sizeof(sendMsg), server, port);
@@ -73,6 +80,7 @@ int main(){
 
 	// load models
 	OBJ stall("stall.obj", "stallTexture.png");
+	OBJ cube("cube.obj", NULL);
 
 	glUseProgram(lightingShader);
 	
@@ -89,7 +97,17 @@ int main(){
 	// glUniform3i(glGetUniformLocation(lightingShader, "material.specular"),  0.5f, 0.5f, 0.5f);
 	glUniform1i(glGetUniformLocation(lightingShader, "material.specular"),  0);
 
+	// keyboard checking
 	bool wChecked = false;
+
+	// create an empty struct of players
+	Player players[PLAYERS];
+	for(int i = 0; i < PLAYERS; i++){
+		sprintf(players[i].name, "");
+		players[i].x = 0.f;
+		players[i].y = 0.f;
+		players[i].z = 0.f;
+	}
 
 	// run window
 	bool running = true;
@@ -108,15 +126,19 @@ int main(){
 
 			if(event.type == sf::Event::KeyPressed){
 				if(event.key.code == sf::Keyboard::W && !wChecked){
+					sprintf(sendMsg, "m%i,w,", ID);
+					socket.send(sendMsg, sizeof(sendMsg), server, port);
+
 					wChecked = true;
-					printf("go\n");
 				}
 			}
 			
 			if(event.type == sf::Event::KeyReleased){
 				if(event.key.code == sf::Keyboard::W && wChecked){
+					//sprintf(sendMsg, "s%i", ID);
+					//socket.send(sendMsg, sizeof(sendMsg), server, port);
+
 					wChecked = false;
-					printf("stop\n");
 				}
 			}
 		}
@@ -151,6 +173,15 @@ int main(){
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(1);
 
+		// draw players
+		/*for(int i = 0; i < PLAYERS; i++){
+			if(strcmp(players[i].name, "") != 0){
+				model = glm::mat4();
+				model = glm::translate(model, glm::vec3(players[i].x, players[i].y, players[i].z));
+				cube.draw(model, modelLoc);
+			}
+		}*/
+
 		// draw lamp
 		glUseProgram(lampShader);
 
@@ -168,6 +199,7 @@ int main(){
 
 	// free models
 	stall.deleteObj();
+	cube.deleteObj();
 
 	// free lamps
 	lamp.deleteLamp();
