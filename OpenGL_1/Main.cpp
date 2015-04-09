@@ -4,6 +4,7 @@
 #include "Lamp.h"
 #include "Camera.h"
 #include "Shader.h"
+#include "Terrain.h"
 #include "Texture.h"
 
 int main(){
@@ -66,6 +67,7 @@ int main(){
 	GLuint lightingShader = loadShaders("vertex.txt",      "fragment.txt");
 	GLuint lampShader     = loadShaders("vertex_lamp.txt", "fragment_lamp.txt");
 	GLuint skyboxShader   = loadShaders("skybox.vert",     "skybox.frag");
+	GLuint terrainShader  = loadShaders("terrain.vert",    "terrain.frag");
 
 	// lamps
 	Lamp lamp(glm::vec3(1.2f, 1.0f, 2.0f));
@@ -83,13 +85,19 @@ int main(){
 	faces.push_back("front.jpg");
 	CubeMap skybox1(faces);
 
+	// load terrain
+	Terrain terrain1("sandgrass.jpg", 0, 0);
+
 	// shader crap
+	glUseProgram(terrainShader);
+	glUniform1i(glGetUniformLocation(terrainShader, "material.diffuse"),  0);
+	glUniform3f(glGetUniformLocation(terrainShader, "light.ambient"),  0.2f, 0.2f, 0.2f);
+	glUniform3f(glGetUniformLocation(terrainShader, "light.diffuse"),  0.5f, 0.5f, 0.5f);
+	glUniform3f(glGetUniformLocation(terrainShader, "light.specular"), 1.0f, 1.0f, 1.0f);
+    glUniform1f(glGetUniformLocation(terrainShader, "material.shininess"), 32.0f);
+	glUniform1i(glGetUniformLocation(terrainShader, "material.specular"),  0);
+
 	glUseProgram(lightingShader);
-	
-	GLuint lampPosLoc = glGetUniformLocation(lightingShader, "light.position");
-	GLuint viewPosLoc = glGetUniformLocation(lightingShader, "viewPos");
-	GLuint matrixLoc  = glGetUniformLocation(lightingShader, "VP");
-	GLuint modelLoc   = glGetUniformLocation(lightingShader, "M");
 	glUniform1i(glGetUniformLocation(lightingShader, "material.diffuse"),  0);
 	glUniform3f(glGetUniformLocation(lightingShader, "light.ambient"),  0.2f, 0.2f, 0.2f);
 	glUniform3f(glGetUniformLocation(lightingShader, "light.diffuse"),  0.5f, 0.5f, 0.5f);
@@ -98,9 +106,6 @@ int main(){
 	// use the below specular for when there's no specular texture
 	// glUniform3i(glGetUniformLocation(lightingShader, "material.specular"),  0.5f, 0.5f, 0.5f);
 	glUniform1i(glGetUniformLocation(lightingShader, "material.specular"),  0);
-
-	// keyboard checking
-	// bool wChecked = false;
 
 	// run window
 	bool running = true;
@@ -113,7 +118,6 @@ int main(){
 				break;
 			}
 		}
-
 		// compute matrices based on keyboard and mouse input
 		computeMats(window, clk);
 		
@@ -131,20 +135,38 @@ int main(){
 
 			skybox1.draw(skyboxShader);
 		glDepthMask(GL_TRUE);
+		
+		glm::mat4 model;
+		GLuint lampPosLoc = glGetUniformLocation(terrainShader, "light.position");
+		GLuint viewPosLoc = glGetUniformLocation(terrainShader, "viewPos");
+		GLuint matrixLoc  = glGetUniformLocation(terrainShader, "VP");
+		GLuint modelLoc   = glGetUniformLocation(terrainShader, "M");
+		// draw terrain
+		glUseProgram(terrainShader);
+
+		glUniform3f(lampPosLoc, lamp.getLampPos().x, lamp.getLampPos().y, lamp.getLampPos().z);
+		glUniform3f(viewPosLoc, getPos().x, getPos().y, getPos().z);
+		
+		glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(VP));
+		glUniform3f(viewPosLoc, getPos().x, getPos().y, getPos().z);
+
+		terrain1.draw(model, modelLoc, matrixLoc, VP);
 
 		// setup light properties
 		glUseProgram(lightingShader);
 
 		glUniform3f(lampPosLoc, lamp.getLampPos().x, lamp.getLampPos().y, lamp.getLampPos().z);
 		glUniform3f(viewPosLoc, getPos().x, getPos().y, getPos().z);
+
+		lampPosLoc = glGetUniformLocation(lightingShader, "light.position");
+		viewPosLoc = glGetUniformLocation(lightingShader, "viewPos");
+		matrixLoc  = glGetUniformLocation(lightingShader, "VP");
+		modelLoc   = glGetUniformLocation(lightingShader, "M");
 		
 		// draw stall
-		glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(VP));
-
-		glm::mat4 model;
 		model = glm::scale(model, glm::vec3(0.25f));
 		model = glm::rotate(model, 3.5f, glm::vec3(0.0, 1.0, 0.0));
-		stall.draw(model, modelLoc);
+		stall.draw(model, modelLoc, matrixLoc, VP);
 
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);

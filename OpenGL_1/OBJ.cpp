@@ -106,12 +106,13 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 	glBindVertexArray(0);
 }
 
-void OBJ::draw(glm::mat4 &model, GLuint modelLoc){
+void OBJ::draw(glm::mat4 &model, GLuint modelLoc, GLuint matrixLoc, glm::mat4 &VP){
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
 	glBindVertexArray(obj);
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(VP));
+		glUniformMatrix4fv(modelLoc,  1, GL_FALSE, glm::value_ptr(model));
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 	glBindVertexArray(0);
 }
