@@ -6,15 +6,6 @@
 #include "Shader.h"
 #include "Texture.h"
 
-#define PLAYERS 8
-
-unsigned int ID;
-
-struct Player {
-	char name[1024];
-	float x, y, z;
-};
-
 int main(){
 	// initialize OpenGL window
 	sf::Window window(sf::VideoMode(1600, 1024), "OpenGL", sf::Style::Titlebar, sf::ContextSettings(32));
@@ -24,7 +15,7 @@ int main(){
     //window.setVerticalSyncEnabled(true);
 
 	// connect to server
-		const unsigned short port = 50001;
+	/*	const unsigned short port = 50001;
 		std::string serverIp = "127.0.0.1";
 		sf::IpAddress server = serverIp;
 
@@ -56,7 +47,7 @@ int main(){
 			printf("Connected to %s successfully (given ID %i).\n", serverIp.c_str(), ID);
 		}
 
-		// socket.setBlocking(false);
+		// socket.setBlocking(false);*/
 
 	// initialize GLEW
 	glewExperimental = true;
@@ -74,14 +65,25 @@ int main(){
 	// load shaders
 	GLuint lightingShader = loadShaders("vertex.txt",      "fragment.txt");
 	GLuint lampShader     = loadShaders("vertex_lamp.txt", "fragment_lamp.txt");
+	GLuint skyboxShader   = loadShaders("skybox.vert",     "skybox.frag");
 
 	// lamps
 	Lamp lamp(glm::vec3(1.2f, 1.0f, 2.0f));
 
 	// load models
 	OBJ stall("stall.obj", "stallTexture.png");
-	OBJ cube("cube.obj", NULL);
 
+	// load skyboxes
+	std::vector<const GLchar*> faces;
+	faces.push_back("right.jpg");
+	faces.push_back("left.jpg");
+	faces.push_back("top.jpg");
+	faces.push_back("bottom.jpg");
+	faces.push_back("back.jpg");
+	faces.push_back("front.jpg");
+	CubeMap skybox1(faces);
+
+	// shader crap
 	glUseProgram(lightingShader);
 	
 	GLuint lampPosLoc = glGetUniformLocation(lightingShader, "light.position");
@@ -98,16 +100,7 @@ int main(){
 	glUniform1i(glGetUniformLocation(lightingShader, "material.specular"),  0);
 
 	// keyboard checking
-	bool wChecked = false;
-
-	// create an empty struct of players
-	Player players[PLAYERS];
-	for(int i = 0; i < PLAYERS; i++){
-		sprintf(players[i].name, "");
-		players[i].x = 0.f;
-		players[i].y = 0.f;
-		players[i].z = 0.f;
-	}
+	// bool wChecked = false;
 
 	// run window
 	bool running = true;
@@ -116,30 +109,8 @@ int main(){
 		sf::Event event;
         while(window.pollEvent(event)){
 			if(event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)){
-				// tell the server the client disconnected
-				sprintf(sendMsg, "-%i", ID);
-				socket.send(sendMsg, sizeof(sendMsg), server, port);
-
 				running = false;
 				break;
-			}
-
-			if(event.type == sf::Event::KeyPressed){
-				if(event.key.code == sf::Keyboard::W && !wChecked){
-					sprintf(sendMsg, "m%i,w,", ID);
-					socket.send(sendMsg, sizeof(sendMsg), server, port);
-
-					wChecked = true;
-				}
-			}
-			
-			if(event.type == sf::Event::KeyReleased){
-				if(event.key.code == sf::Keyboard::W && wChecked){
-					//sprintf(sendMsg, "s%i", ID);
-					//socket.send(sendMsg, sizeof(sendMsg), server, port);
-
-					wChecked = false;
-				}
 			}
 		}
 
@@ -149,40 +120,37 @@ int main(){
 		// clear buffer
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		glm::mat4 VP = getProjectionMatrix() * getViewMatrix();
+
+		// skybox
+		glDepthMask(GL_FALSE);
+			glUseProgram(skyboxShader);
+			glm::mat4 VP2 = getProjectionMatrix() * glm::mat4(glm::mat3(getViewMatrix()));
+			glUniformMatrix4fv(glGetUniformLocation(skyboxShader, "VP"), 1, GL_FALSE, glm::value_ptr(VP2));
+
+			skybox1.draw(skyboxShader);
+		glDepthMask(GL_TRUE);
 
 		// setup light properties
 		glUseProgram(lightingShader);
 
 		glUniform3f(lampPosLoc, lamp.getLampPos().x, lamp.getLampPos().y, lamp.getLampPos().z);
 		glUniform3f(viewPosLoc, getPos().x, getPos().y, getPos().z);
-
-		glm::mat4 VP = getProjectionMatrix() * getViewMatrix();
-		glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(VP));
 		
-		glm::mat4 model;
 		// draw stall
+		glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(VP));
+
+		glm::mat4 model;
 		model = glm::scale(model, glm::vec3(0.25f));
 		model = glm::rotate(model, 3.5f, glm::vec3(0.0, 1.0, 0.0));
-		stall.draw(model, modelLoc);
-		
-		model = glm::translate(model, glm::vec3(9, 0, -9));
-		model = glm::rotate(model, 1.5f, glm::vec3(0.0, 1.0, 0.0));
 		stall.draw(model, modelLoc);
 
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(2);
 
-		// draw players
-		/*for(int i = 0; i < PLAYERS; i++){
-			if(strcmp(players[i].name, "") != 0){
-				model = glm::mat4();
-				model = glm::translate(model, glm::vec3(players[i].x, players[i].y, players[i].z));
-				cube.draw(model, modelLoc);
-			}
-		}*/
-
-		// draw lamp
+		// draw lamps
 		glUseProgram(lampShader);
 
 		matrixLoc = glGetUniformLocation(lampShader, "VP");
@@ -199,13 +167,13 @@ int main(){
 
 	// free models
 	stall.deleteObj();
-	cube.deleteObj();
 
 	// free lamps
 	lamp.deleteLamp();
 
 	// free shaders
 	glDeleteProgram(lightingShader);
+	glDeleteProgram(skyboxShader);
 	glDeleteProgram(lampShader);
 	
 	return 0;

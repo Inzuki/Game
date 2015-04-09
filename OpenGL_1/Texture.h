@@ -7,4 +7,13 @@
 
 GLuint loadTexture(const char *);
 
+class CubeMap {
+	public:
+		CubeMap(std::vector<const GLchar*>);
+		void draw(GLuint);
+		GLfloat **skyboxVerts;
+	private:
+		GLuint texture, vao, vbo;
+};
+
 #endif
