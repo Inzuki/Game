@@ -7,15 +7,14 @@
 
 class Terrain {
 	public:
-		Terrain(const char *, int, int);
+		Terrain(const char *, const char *);
 		void draw(glm::mat4&, GLuint, GLuint, glm::mat4&);
-	private:
-		void generateTerrain();
-		GLuint texture, vao;
-		const float SIZE = 800;
-		const int VERTEX_COUNT = 128;
 		float x, z;
-		int size;
+	private:
+		float avgPixel(sf::Color);
+		GLuint texture, texture2, texture3, vao, vertBuff, texBuff, normBuff;
+		int rnum;
+		float *vertexData, *textureData, *normalData;
 };
 
 #endif

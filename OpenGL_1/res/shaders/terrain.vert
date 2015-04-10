@@ -13,8 +13,7 @@ uniform mat4 M;
 
 void main(){
 	gl_Position  = VP * M * vec4(pos, 1.0f);
-	outNormal    = mat3(transpose(inverse(M))) * normal;
 	outFragPos   = vec3(M * vec4(pos, 1.0f));
-	//outTexCoords = texCoords;
-	outTexCoords = vec2(texCoords.x, 1.0 - texCoords.y);
+	outNormal    = mat3(transpose(inverse(M))) * normal;
+	outTexCoords = texCoords;
 }

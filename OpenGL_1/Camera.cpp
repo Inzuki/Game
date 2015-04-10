@@ -7,7 +7,7 @@ glm::vec3 position = glm::vec3(0, 0, 5);
 float horizontalAngle = 3.14f,
 	  verticalAngle   = 0.f,
 	  initFOV         = 45.f,
-	  speed			  = 3.f,
+	  speed			  = 10.f,
 	  mouseSpeed      = 0.01f;
 
 glm::mat4 getViewMatrix(){ return view; }

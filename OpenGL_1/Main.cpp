@@ -86,11 +86,13 @@ int main(){
 	CubeMap skybox1(faces);
 
 	// load terrain
-	Terrain terrain1("sandgrass.jpg", 0, 0);
+	Terrain terrain1("height.jpg", "sandgrass.jpg");
 
 	// shader crap
 	glUseProgram(terrainShader);
-	glUniform1i(glGetUniformLocation(terrainShader, "material.diffuse"),  0);
+	glUniform1i(glGetUniformLocation(terrainShader, "material.diffuse"), 0);
+	glUniform1i(glGetUniformLocation(terrainShader, "material.two"),     1);
+	glUniform1i(glGetUniformLocation(terrainShader, "material.thr"),     2);
 	glUniform3f(glGetUniformLocation(terrainShader, "light.ambient"),  0.2f, 0.2f, 0.2f);
 	glUniform3f(glGetUniformLocation(terrainShader, "light.diffuse"),  0.5f, 0.5f, 0.5f);
 	glUniform3f(glGetUniformLocation(terrainShader, "light.specular"), 1.0f, 1.0f, 1.0f);
@@ -137,10 +139,10 @@ int main(){
 		glDepthMask(GL_TRUE);
 		
 		glm::mat4 model;
-		GLuint lampPosLoc = glGetUniformLocation(terrainShader, "light.position");
-		GLuint viewPosLoc = glGetUniformLocation(terrainShader, "viewPos");
-		GLuint matrixLoc  = glGetUniformLocation(terrainShader, "VP");
-		GLuint modelLoc   = glGetUniformLocation(terrainShader, "M");
+		GLuint lampPosLoc = glGetUniformLocation(lightingShader, "light.position");
+		GLuint viewPosLoc = glGetUniformLocation(lightingShader, "viewPos");
+		GLuint matrixLoc  = glGetUniformLocation(lightingShader, "VP");
+		GLuint modelLoc   = glGetUniformLocation(lightingShader, "M");
 		// draw terrain
 		glUseProgram(terrainShader);
 
@@ -150,22 +152,25 @@ int main(){
 		glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(VP));
 		glUniform3f(viewPosLoc, getPos().x, getPos().y, getPos().z);
 
+		model = glm::scale(model, glm::vec3(.05f));
 		terrain1.draw(model, modelLoc, matrixLoc, VP);
 
 		// setup light properties
 		glUseProgram(lightingShader);
-
-		glUniform3f(lampPosLoc, lamp.getLampPos().x, lamp.getLampPos().y, lamp.getLampPos().z);
-		glUniform3f(viewPosLoc, getPos().x, getPos().y, getPos().z);
-
+		
 		lampPosLoc = glGetUniformLocation(lightingShader, "light.position");
 		viewPosLoc = glGetUniformLocation(lightingShader, "viewPos");
 		matrixLoc  = glGetUniformLocation(lightingShader, "VP");
 		modelLoc   = glGetUniformLocation(lightingShader, "M");
+
+		glUniform3f(lampPosLoc, lamp.getLampPos().x, lamp.getLampPos().y, lamp.getLampPos().z);
+		glUniform3f(viewPosLoc, getPos().x, getPos().y, getPos().z);
 		
 		// draw stall
+		model = glm::mat4();
 		model = glm::scale(model, glm::vec3(0.25f));
 		model = glm::rotate(model, 3.5f, glm::vec3(0.0, 1.0, 0.0));
+		model = glm::translate(model, glm::vec3(0.f, 0.f, 5.f));
 		stall.draw(model, modelLoc, matrixLoc, VP);
 
 		glDisableVertexAttribArray(0);
@@ -180,7 +185,12 @@ int main(){
 		
 		model = glm::mat4();
 		model = glm::scale(model, glm::vec3(0.1f));
-		model = glm::translate(model, glm::vec3(1.2f, 10.0f, 20.0f));
+		model = glm::translate(model, glm::vec3(
+			clk.getElapsedTime().asSeconds() * 5.f,
+			20.0f,
+			clk.getElapsedTime().asSeconds() * 5.f)
+		);
+		//model = glm::translate(model, glm::vec3(1.2f, 20.0f, 20.0f));
 
 		lamp.draw(model, modelLoc, matrixLoc, VP);
 
