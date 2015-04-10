@@ -4,6 +4,8 @@ struct Material {
 	sampler2D diffuse;
 	sampler2D two;
 	sampler2D thr;
+	sampler2D fou;
+	sampler2D path;
 };
 
 struct Lamp {
@@ -22,51 +24,86 @@ out vec4 color;
 uniform vec3 viewPos;
 uniform Material material;
 uniform Lamp light;
+uniform vec2 resolution;
+uniform mat4 P;
+uniform mat4 V;
+uniform mat4 VP;
 
 void main(){
-	const float fRange1 = 0.15f; 
-    const float fRange2 = 0.3f; 
-    const float fRange3 = 0.65f; 
-    const float fRange4 = 0.85f; 
+	// multi-texturing
+		const float fRange1 = 0.15f; 
+		const float fRange2 = 0.3f; 
+		const float fRange3 = 0.65f; 
+		const float fRange4 = 0.85f; 
 
-	float scale = outFragPos.y / 1.5f;
+		float scale = outFragPos.y / 1.0;
 
-	vec3 texColor = vec3(0.0f);
+		vec3 texColor = vec3(0.0f);
+		
+	// path (multi-texturing cont.)
+		vec4 ndcPos;
+		ndcPos.xy = (2.0 * gl_FragCoord.xy) / (resolution.xy) - 1;
+		ndcPos.z  = (2.0 * gl_FragCoord.z - gl_DepthRange.near - gl_DepthRange.far) / (gl_DepthRange.far - gl_DepthRange.near);
+		ndcPos.w  = 1.0f;
 
-	if(scale >= 0.0 && scale < fRange1)
-		texColor = vec3(texture(material.thr, outTexCoords));
-	else if(scale <= fRange2){
-		scale -= fRange1;
-		scale /= (fRange2 - fRange1);
+		vec4 clipPos = ndcPos / gl_FragCoord.w;
 
-		float scale2 = scale;
-		scale = 1.0f - scale;
+		vec4 temp = inverse(VP) * clipPos;
 
-		texColor += vec3(texture(material.thr, outTexCoords)) * scale;
-		texColor += vec3(texture(material.two, outTexCoords)) * scale2;
-	}else if(scale <= fRange3)
-		texColor = vec3(texture(material.two, outTexCoords));
-	else if(scale <= fRange4){
-		scale -= fRange3;
-		scale /= (fRange4 - fRange3);
+		vec2 POS = vec2(temp.x / 40, temp.z / 40);
+		vec4 POScolor = texture2D(material.path, POS);
 
-		float scale2 = scale;
-		scale = 1.0f - scale;
+		float avg = (POScolor.x + POScolor.y + POScolor.z) / 3;
 
-		texColor += vec3(texture(material.two, outTexCoords)) * scale;
-		texColor += vec3(texture(material.diffuse, outTexCoords)) * scale2;
-	}else
-		texColor = vec3(texture(material.diffuse, outTexCoords));
+		if(avg < 0.9f){
+			float test = 1.0 - avg;
+
+			if(scale >= 0.0 && scale < fRange1)
+				texColor += vec3(texture(material.thr, outTexCoords)) * avg;
+			else if(scale <= fRange2){
+				texColor += vec3(texture(material.thr, outTexCoords)) * vec3(texture(material.two, outTexCoords)) * avg;
+			}else if(scale <= fRange3)
+				texColor += vec3(texture(material.two, outTexCoords)) * avg;
+			else if(scale <= fRange4){
+				texColor += vec3(texture(material.two, outTexCoords)) * vec3(texture(material.diffuse, outTexCoords)) * avg;
+			}else
+				texColor += vec3(texture(material.diffuse, outTexCoords)) * avg;
+			
+			texColor += vec3(texture(material.fou, outTexCoords)) * test;
+		}else {
+			if(scale >= 0.0 && scale < fRange1)
+				texColor = vec3(texture(material.thr, outTexCoords));
+			else if(scale <= fRange2){
+				scale -= fRange1;
+				scale /= (fRange2 - fRange1);
+
+				float scale2 = scale;
+				scale = 1.0f - scale;
+
+				texColor += vec3(texture(material.thr, outTexCoords)) * scale;
+				texColor += vec3(texture(material.two, outTexCoords)) * scale2;
+			}else if(scale <= fRange3)
+				texColor = vec3(texture(material.two, outTexCoords));
+			else if(scale <= fRange4){
+				scale -= fRange3;
+				scale /= (fRange4 - fRange3);
+
+				float scale2 = scale;
+				scale = 1.0f - scale;
+
+				texColor += vec3(texture(material.two, outTexCoords)) * scale;
+				texColor += vec3(texture(material.diffuse, outTexCoords)) * scale2;
+			}else
+				texColor = vec3(texture(material.diffuse, outTexCoords));
+		}
 
 	// ambient lighting
-		// vec3 ambient = light.ambient * vec3(texture(material.two, outTexCoords));
 		vec3 ambient = light.ambient * texColor;
 
 	// diffuse lighting
 		vec3 norm     = normalize(outNormal);
 		vec3 lightDir = normalize(light.position - outFragPos);
 		float diff    = max(dot(norm, lightDir), 0.0);
-		// vec3 diffuse  = light.diffuse * diff * vec3(texture(material.diffuse, outTexCoords));
 		vec3 diffuse  = light.diffuse * diff * texColor;
 
 	// final result

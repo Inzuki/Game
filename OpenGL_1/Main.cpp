@@ -9,11 +9,12 @@
 
 int main(){
 	// initialize OpenGL window
-	sf::Window window(sf::VideoMode(1600, 1024), "OpenGL", sf::Style::Titlebar, sf::ContextSettings(32));
+	sf::Window window(sf::VideoMode(1600, 1024), "OpenGL", sf::Style::Resize, sf::ContextSettings(32));
 	window.setFramerateLimit(60);
 	window.setMouseCursorVisible(false);
 	sf::Clock clk;
-    //window.setVerticalSyncEnabled(true);
+    window.setVerticalSyncEnabled(true);
+	char fps[16];
 
 	// connect to server
 	/*	const unsigned short port = 50001;
@@ -86,6 +87,7 @@ int main(){
 	CubeMap skybox1(faces);
 
 	// load terrain
+	// Terrain terrain1("hm.png", "sandgrass.jpg");
 	Terrain terrain1("height.jpg", "sandgrass.jpg");
 
 	// shader crap
@@ -93,11 +95,12 @@ int main(){
 	glUniform1i(glGetUniformLocation(terrainShader, "material.diffuse"), 0);
 	glUniform1i(glGetUniformLocation(terrainShader, "material.two"),     1);
 	glUniform1i(glGetUniformLocation(terrainShader, "material.thr"),     2);
+	glUniform1i(glGetUniformLocation(terrainShader, "material.path"),    3);
+	glUniform1i(glGetUniformLocation(terrainShader, "material.fou"),     4);
+	glUniform2f(glGetUniformLocation(terrainShader, "resolution"), window.getSize().x, window.getSize().y);
 	glUniform3f(glGetUniformLocation(terrainShader, "light.ambient"),  0.2f, 0.2f, 0.2f);
 	glUniform3f(glGetUniformLocation(terrainShader, "light.diffuse"),  0.5f, 0.5f, 0.5f);
 	glUniform3f(glGetUniformLocation(terrainShader, "light.specular"), 1.0f, 1.0f, 1.0f);
-    glUniform1f(glGetUniformLocation(terrainShader, "material.shininess"), 32.0f);
-	glUniform1i(glGetUniformLocation(terrainShader, "material.specular"),  0);
 
 	glUseProgram(lightingShader);
 	glUniform1i(glGetUniformLocation(lightingShader, "material.diffuse"),  0);
@@ -112,6 +115,13 @@ int main(){
 	// run window
 	bool running = true;
 	while(running){
+		static float lastTime = clk.getElapsedTime().asSeconds();
+		float currentTime = clk.getElapsedTime().asSeconds();
+		float deltaTime = float(currentTime - lastTime);
+
+		sprintf(fps, "%f", 1.f / deltaTime);
+		window.setTitle(fps);
+
 		// handle keyboard input
 		sf::Event event;
         while(window.pollEvent(event)){
@@ -119,9 +129,20 @@ int main(){
 				running = false;
 				break;
 			}
+
+			if(event.type == sf::Event::KeyReleased){
+				if(event.key.code == sf::Keyboard::Q)
+					setCursorLocked();
+			}
+
+			if(event.type == sf::Event::Resized){
+				glViewport(0, 0, window.getSize().x, window.getSize().y);
+				glUseProgram(terrainShader);
+				glUniform2f(glGetUniformLocation(terrainShader, "resolution"), window.getSize().x, window.getSize().y);
+			}
 		}
 		// compute matrices based on keyboard and mouse input
-		computeMats(window, clk);
+		computeMats(window, clk, deltaTime);
 		
 		// clear buffer
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -139,20 +160,22 @@ int main(){
 		glDepthMask(GL_TRUE);
 		
 		glm::mat4 model;
-		GLuint lampPosLoc = glGetUniformLocation(lightingShader, "light.position");
-		GLuint viewPosLoc = glGetUniformLocation(lightingShader, "viewPos");
-		GLuint matrixLoc  = glGetUniformLocation(lightingShader, "VP");
-		GLuint modelLoc   = glGetUniformLocation(lightingShader, "M");
+		GLuint lampPosLoc = glGetUniformLocation(terrainShader, "light.position");
+		GLuint viewPosLoc = glGetUniformLocation(terrainShader, "viewPos");
+		GLuint matrixLoc  = glGetUniformLocation(terrainShader, "VP");
+		GLuint modelLoc   = glGetUniformLocation(terrainShader, "M");
 		// draw terrain
 		glUseProgram(terrainShader);
-
+		
+		glUniformMatrix4fv(glGetUniformLocation(terrainShader, "V"), 1, GL_FALSE, glm::value_ptr(getViewMatrix()));
+		glUniformMatrix4fv(glGetUniformLocation(terrainShader, "P"), 1, GL_FALSE, glm::value_ptr(getProjectionMatrix()));
 		glUniform3f(lampPosLoc, lamp.getLampPos().x, lamp.getLampPos().y, lamp.getLampPos().z);
 		glUniform3f(viewPosLoc, getPos().x, getPos().y, getPos().z);
 		
 		glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(VP));
 		glUniform3f(viewPosLoc, getPos().x, getPos().y, getPos().z);
 
-		model = glm::scale(model, glm::vec3(.05f));
+		model = glm::scale(model, glm::vec3(.075f));
 		terrain1.draw(model, modelLoc, matrixLoc, VP);
 
 		// setup light properties
@@ -187,7 +210,7 @@ int main(){
 		model = glm::scale(model, glm::vec3(0.1f));
 		model = glm::translate(model, glm::vec3(
 			clk.getElapsedTime().asSeconds() * 5.f,
-			20.0f,
+			50.0f,
 			clk.getElapsedTime().asSeconds() * 5.f)
 		);
 		//model = glm::translate(model, glm::vec3(1.2f, 20.0f, 20.0f));
@@ -195,6 +218,8 @@ int main(){
 		lamp.draw(model, modelLoc, matrixLoc, VP);
 
 		window.display();
+
+		lastTime = currentTime;
 	}
 
 	// free models

@@ -10,19 +10,25 @@ float horizontalAngle = 3.14f,
 	  speed			  = 10.f,
 	  mouseSpeed      = 0.01f;
 
+bool cursorLocked = true;
+
 glm::mat4 getViewMatrix(){ return view; }
 glm::mat4 getProjectionMatrix(){ return projection; }
 glm::vec3 getPos(){ return position; }
 
-void computeMats(sf::Window &window, sf::Clock clk){
-	static float lastTime = clk.restart().asSeconds();
-	float currentTime = clk.restart().asSeconds();
-	float deltaTime = float(currentTime - lastTime);
+void setCursorLocked(){
+	if(cursorLocked)
+		cursorLocked = false;
+	else
+		cursorLocked = true;
+}
 
+void computeMats(sf::Window &window, sf::Clock clk, float deltaTime){
 	double xpos = sf::Mouse::getPosition().x,
 		   ypos = sf::Mouse::getPosition().y;
 
-	sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2, window.getSize().y / 2));
+	if(cursorLocked)
+		sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2, window.getSize().y / 2));
 
 	horizontalAngle += mouseSpeed * float(window.getSize().x / 2 - xpos);
 	verticalAngle   += mouseSpeed * float(window.getSize().y / 2 - ypos);
@@ -58,6 +64,4 @@ void computeMats(sf::Window &window, sf::Clock clk){
 		position + direction,
 		up
 	);
-
-	lastTime = currentTime;
 }

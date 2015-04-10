@@ -9,10 +9,11 @@ class Terrain {
 	public:
 		Terrain(const char *, const char *);
 		void draw(glm::mat4&, GLuint, GLuint, glm::mat4&);
-		float x, z;
+		float X, Y;
 	private:
 		float avgPixel(sf::Color);
-		GLuint texture, texture2, texture3, vao, vertBuff, texBuff, normBuff;
+		GLuint texture, texture2, texture3, texture4, texture5,
+			   vao, vertBuff, texBuff, normBuff;
 		int rnum;
 		float *vertexData, *textureData, *normalData;
 };

@@ -8,11 +8,16 @@ Terrain::Terrain(const char *file, const char *texFilePath){
 	texture = loadTexture(texFilePath);
 	texture2 = loadTexture("sand.jpg");
 	texture3 = loadTexture("rock.jpg");
+	texture4 = loadTexture("path.png");
+	texture5 = loadTexture("brick.png");
 
 	sf::Image img;
 	char texFile[128];
 	sprintf(texFile, "res/textures/%s", file);
 	img.loadFromFile(texFile);
+
+	X = (float)img.getSize().x;
+	Y = (float)img.getSize().y;
 
 	rnum = ((img.getSize().x - 1) * 2) * (img.getSize().y - 1);
 
@@ -128,6 +133,12 @@ void Terrain::draw(glm::mat4 &model, GLuint modelLoc, GLuint matrixLoc, glm::mat
 
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, texture3);
+
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, texture4);
+
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, texture5);
 
 	glBindVertexArray(vao);
 		glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(VP));
