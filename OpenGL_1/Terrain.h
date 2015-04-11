@@ -7,15 +7,16 @@
 
 class Terrain {
 	public:
+		float getHeight(float, float);
 		Terrain(const char *, const char *);
 		void draw(glm::mat4&, GLuint, GLuint, glm::mat4&);
-		float X, Y;
 	private:
+		int rnum;
+		float *vertexData, *textureData, *normalData;
+		std::vector<std::vector<float>> heights;
 		float avgPixel(sf::Color);
 		GLuint texture, texture2, texture3, texture4, texture5,
 			   vao, vertBuff, texBuff, normBuff;
-		int rnum;
-		float *vertexData, *textureData, *normalData;
 };
 
 #endif

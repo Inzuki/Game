@@ -5,6 +5,7 @@ float Terrain::avgPixel(sf::Color c){
 }
 
 Terrain::Terrain(const char *file, const char *texFilePath){
+
 	texture = loadTexture(texFilePath);
 	texture2 = loadTexture("sand.jpg");
 	texture3 = loadTexture("rock.jpg");
@@ -16,8 +17,12 @@ Terrain::Terrain(const char *file, const char *texFilePath){
 	sprintf(texFile, "res/textures/%s", file);
 	img.loadFromFile(texFile);
 
-	X = (float)img.getSize().x;
-	Y = (float)img.getSize().y;
+	for(int i = 0; i < img.getSize().x - 1; i++)
+		heights.push_back(std::vector<float>());
+	
+	for(int i = 0; i < img.getSize().x - 1; i++)
+		for(int j = 0; j < img.getSize().y - 1; j++)
+			heights[j].push_back(0.f);
 
 	rnum = ((img.getSize().x - 1) * 2) * (img.getSize().y - 1);
 
@@ -90,6 +95,7 @@ Terrain::Terrain(const char *file, const char *texFilePath){
 				i++; ti++;
 
 				vertexData[i]   = tmpv[w].y;
+				heights[y][x]   = tmpv[w].y;
 				normalData[i]   = tmpn.y;
 				textureData[ti] = tmpt[w].y;
 				i++; ti++;
@@ -145,4 +151,12 @@ void Terrain::draw(glm::mat4 &model, GLuint modelLoc, GLuint matrixLoc, glm::mat
 		glUniformMatrix4fv(modelLoc,  1, GL_FALSE, glm::value_ptr(model));
 		glDrawArrays(GL_TRIANGLES, 0, rnum * 3);
 	glBindVertexArray(0);
+}
+
+float Terrain::getHeight(float x, float z){
+	float y = 0.f;
+	
+	y = heights[(int)z][(int)x];
+
+	return y;
 }

@@ -16,41 +16,6 @@ int main(){
     window.setVerticalSyncEnabled(true);
 	char fps[16];
 
-	// connect to server
-	/*	const unsigned short port = 50001;
-		std::string serverIp = "127.0.0.1";
-		sf::IpAddress server = serverIp;
-
-		printf("Connecting to %s...\n", serverIp.c_str());
-	
-	// tell the server the client connected
-		char sendMsg[1024];
-		sprintf(sendMsg, "+Inzuki");
-	
-		sf::UdpSocket socket;
-		socket.send(sendMsg, sizeof(sendMsg), server, port);
-		socket.setBlocking(false);
-
-	// receive from the server if the client successfully connected
-		char buffer[1024];
-		std::size_t received;
-		sf::IpAddress sender;
-		unsigned short senderPort;
-		socket.receive(buffer, sizeof(buffer), received, sender, senderPort);
-
-		// if the client successfully connected, the server should send back a success signal
-		if(buffer[0] == '0'){
-			char buff[1024];
-			for(int i = 0; i < sizeof(buffer); i++)
-				buff[i] = buffer[i + 1];
-
-			ID = atoi(buff);
-
-			printf("Connected to %s successfully (given ID %i).\n", serverIp.c_str(), ID);
-		}
-
-		// socket.setBlocking(false);*/
-
 	// initialize GLEW
 	glewExperimental = true;
 	GLenum err = glewInit();
@@ -87,7 +52,6 @@ int main(){
 	CubeMap skybox1(faces);
 
 	// load terrain
-	// Terrain terrain1("hm.png", "sandgrass.jpg");
 	Terrain terrain1("height.jpg", "sandgrass.jpg");
 
 	// shader crap
@@ -115,9 +79,13 @@ int main(){
 	// run window
 	bool running = true;
 	while(running){
+		// phys testing
+		setPosY(terrain1.getHeight(getPos().x, getPos().z) + 5.f);
+
+		// calculate timestamp
 		static float lastTime = clk.getElapsedTime().asSeconds();
-		float currentTime = clk.getElapsedTime().asSeconds();
-		float deltaTime = float(currentTime - lastTime);
+		float currentTime = clk.getElapsedTime().asSeconds(),
+			  deltaTime = float(currentTime - lastTime);
 
 		sprintf(fps, "%f", 1.f / deltaTime);
 		window.setTitle(fps);
@@ -175,7 +143,7 @@ int main(){
 		glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(VP));
 		glUniform3f(viewPosLoc, getPos().x, getPos().y, getPos().z);
 
-		model = glm::scale(model, glm::vec3(.075f));
+		//model = glm::scale(model, glm::vec3(.075f));
 		terrain1.draw(model, modelLoc, matrixLoc, VP);
 
 		// setup light properties
@@ -190,12 +158,12 @@ int main(){
 		glUniform3f(viewPosLoc, getPos().x, getPos().y, getPos().z);
 		
 		// draw stall
-		model = glm::mat4();
+		/*model = glm::mat4();
 		model = glm::scale(model, glm::vec3(0.25f));
 		model = glm::rotate(model, 3.5f, glm::vec3(0.0, 1.0, 0.0));
 		model = glm::translate(model, glm::vec3(0.f, 0.f, 5.f));
-		stall.draw(model, modelLoc, matrixLoc, VP);
-
+		stall.draw(model, modelLoc, matrixLoc, VP);*/
+		
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
@@ -207,11 +175,10 @@ int main(){
 		modelLoc  = glGetUniformLocation(lampShader, "M");
 		
 		model = glm::mat4();
-		model = glm::scale(model, glm::vec3(0.1f));
 		model = glm::translate(model, glm::vec3(
-			clk.getElapsedTime().asSeconds() * 5.f,
-			50.0f,
-			clk.getElapsedTime().asSeconds() * 5.f)
+			currentTime * 10.f,
+			150.0f,
+			currentTime * 10.f)
 		);
 		//model = glm::translate(model, glm::vec3(1.2f, 20.0f, 20.0f));
 
@@ -235,3 +202,38 @@ int main(){
 	
 	return 0;
 }
+
+	// connect to server
+	/*	const unsigned short port = 50001;
+		std::string serverIp = "127.0.0.1";
+		sf::IpAddress server = serverIp;
+
+		printf("Connecting to %s...\n", serverIp.c_str());
+	
+	// tell the server the client connected
+		char sendMsg[1024];
+		sprintf(sendMsg, "+Inzuki");
+	
+		sf::UdpSocket socket;
+		socket.send(sendMsg, sizeof(sendMsg), server, port);
+		socket.setBlocking(false);
+
+	// receive from the server if the client successfully connected
+		char buffer[1024];
+		std::size_t received;
+		sf::IpAddress sender;
+		unsigned short senderPort;
+		socket.receive(buffer, sizeof(buffer), received, sender, senderPort);
+
+		// if the client successfully connected, the server should send back a success signal
+		if(buffer[0] == '0'){
+			char buff[1024];
+			for(int i = 0; i < sizeof(buffer); i++)
+				buff[i] = buffer[i + 1];
+
+			ID = atoi(buff);
+
+			printf("Connected to %s successfully (given ID %i).\n", serverIp.c_str(), ID);
+		}
+
+		// socket.setBlocking(false);*/
