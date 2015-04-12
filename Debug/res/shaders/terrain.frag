@@ -12,7 +12,6 @@ struct Lamp {
 	vec3 position;
 	vec3 ambient;
 	vec3 diffuse;
-	vec3 specular;
 };
 
 in vec3 outNormal;
@@ -25,8 +24,6 @@ uniform vec3 viewPos;
 uniform Material material;
 uniform Lamp light;
 uniform vec2 resolution;
-uniform mat4 P;
-uniform mat4 V;
 uniform mat4 VP;
 
 void main(){
@@ -50,7 +47,7 @@ void main(){
 
 		vec4 temp = inverse(VP) * clipPos;
 
-		vec2 POS = vec2(temp.x / 40, temp.z / 40);
+		vec2 POS = vec2(temp.x / 400, temp.z / 400);
 		vec4 POScolor = texture2D(material.path, POS);
 
 		float avg = (POScolor.x + POScolor.y + POScolor.z) / 3;
@@ -58,14 +55,27 @@ void main(){
 		if(avg < 0.9f){
 			float test = 1.0 - avg;
 
+			vec3 t1 = vec3(1.0);
+			vec3 t2 = vec3(1.0);
+
 			if(scale >= 0.0 && scale < fRange1)
 				texColor += vec3(texture(material.thr, outTexCoords)) * avg;
 			else if(scale <= fRange2){
-				texColor += vec3(texture(material.thr, outTexCoords)) * vec3(texture(material.two, outTexCoords)) * avg;
+				t1 = vec3(texture(material.thr, outTexCoords));
+				t2 = vec3(texture(material.two, outTexCoords));
+
+				texColor.x = ((t1.x + t2.x) / 2) * avg;
+				texColor.y = ((t1.y + t2.y) / 2) * avg;
+				texColor.z = ((t1.z + t2.z) / 2) * avg;
 			}else if(scale <= fRange3)
 				texColor += vec3(texture(material.two, outTexCoords)) * avg;
 			else if(scale <= fRange4){
-				texColor += vec3(texture(material.two, outTexCoords)) * vec3(texture(material.diffuse, outTexCoords)) * avg;
+				t1 = vec3(texture(material.two, outTexCoords));
+				t2 = vec3(texture(material.diffuse, outTexCoords));
+
+				texColor.x = ((t1.x + t2.x)) / 2 * avg;
+				texColor.y = ((t1.y + t2.y)) / 2 * avg;
+				texColor.z = ((t1.z + t2.z)) / 2 * avg;
 			}else
 				texColor += vec3(texture(material.diffuse, outTexCoords)) * avg;
 			
