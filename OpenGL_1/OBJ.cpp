@@ -1,5 +1,6 @@
 #include "OBJ.h"
 #include "Texture.h"
+#include "Camera.h"
 
 OBJ::OBJ(const char *objName, const char *textureFile){
 	// load the texture, ez
@@ -106,13 +107,14 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 	glBindVertexArray(0);
 }
 
-void OBJ::draw(glm::mat4 &model, GLuint modelLoc, GLuint matrixLoc, glm::mat4 &VP){
+void OBJ::draw(glm::mat4 &model, glm::mat4 &VP, GLuint &shader){
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
 	glBindVertexArray(obj);
-		glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(VP));
-		glUniformMatrix4fv(modelLoc,  1, GL_FALSE, glm::value_ptr(model));
+		glUniform3f(glGetUniformLocation(shader, "viewPos"), getPos().x, getPos().y, getPos().z);
+		glUniformMatrix4fv(glGetUniformLocation(shader, "VP"), 1, GL_FALSE, glm::value_ptr(VP));
+		glUniformMatrix4fv(glGetUniformLocation(shader, "M"),  1, GL_FALSE, glm::value_ptr(model));
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 	glBindVertexArray(0);
 }
@@ -122,6 +124,7 @@ void OBJ::deleteObj(){
 	glDeleteBuffers(1,  &texBuff);
 	glDeleteBuffers(1, &normBuff);
 	glDeleteVertexArrays(1, &obj);
+	glDeleteTextures(1, &texture);
 }
 
 GLuint OBJ::getTexture(){ return texture; }

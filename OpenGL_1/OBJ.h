@@ -9,7 +9,8 @@ class OBJ {
 	public:
 		OBJ(const char *, const char *);
 		GLuint getTexture();
-		void draw(glm::mat4&, GLuint, GLuint, glm::mat4&), deleteObj();
+		void draw(glm::mat4&, glm::mat4&, GLuint&),
+			 deleteObj();
 		int getVerts();
 	private:
 		int vertexCount;

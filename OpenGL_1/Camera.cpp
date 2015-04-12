@@ -58,7 +58,7 @@ void computeMats(sf::Window &window, sf::Clock clk, float deltaTime){
 	if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 		position -= right * speed * deltaTime;
 
-	projection = glm::perspective(initFOV, 4.f / 3.f, .1f, 400.f);
+	projection = glm::perspective(initFOV, 4.f / 3.f, .1f, 250.f);
 
 	view = glm::lookAt(
 		position,

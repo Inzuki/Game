@@ -1,4 +1,5 @@
 #include "Terrain.h"
+#include "Camera.h"
 
 float Terrain::avgPixel(sf::Color c){
 	return (c.r + c.g + c.b) / 3;
@@ -130,7 +131,7 @@ Terrain::Terrain(const char *file, const char *texFilePath){
 	glBindVertexArray(0);
 }
 
-void Terrain::draw(glm::mat4 &model, GLuint modelLoc, GLuint matrixLoc, glm::mat4 &VP){
+void Terrain::draw(glm::mat4 &VP, GLuint &shader){
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -146,9 +147,11 @@ void Terrain::draw(glm::mat4 &model, GLuint modelLoc, GLuint matrixLoc, glm::mat
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, texture5);
 
+	glm::mat4 model;
 	glBindVertexArray(vao);
-		glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(VP));
-		glUniformMatrix4fv(modelLoc,  1, GL_FALSE, glm::value_ptr(model));
+		glUniform3f(glGetUniformLocation(shader, "viewPos"), getPos().x, getPos().y, getPos().z);
+		glUniformMatrix4fv(glGetUniformLocation(shader, "VP"), 1, GL_FALSE, glm::value_ptr(VP));
+		glUniformMatrix4fv(glGetUniformLocation(shader, "M"),  1, GL_FALSE, glm::value_ptr(model));
 		glDrawArrays(GL_TRIANGLES, 0, rnum * 3);
 	glBindVertexArray(0);
 }
@@ -159,4 +162,16 @@ float Terrain::getHeight(float x, float z){
 	y = heights[(int)z][(int)x];
 
 	return y;
+}
+
+void Terrain::deleteTerrain(){
+	glDeleteTextures(1, &texture);
+	glDeleteTextures(1, &texture2);
+	glDeleteTextures(1, &texture3);
+	glDeleteTextures(1, &texture4);
+	glDeleteTextures(1, &texture5);
+	glDeleteVertexArrays(1, &vao);
+	glDeleteBuffers(1, &vertBuff);
+	glDeleteBuffers(1, &normBuff);
+	glDeleteBuffers(1, &texBuff);
 }

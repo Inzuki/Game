@@ -9,7 +9,8 @@ class Terrain {
 	public:
 		float getHeight(float, float);
 		Terrain(const char *, const char *);
-		void draw(glm::mat4&, GLuint, GLuint, glm::mat4&);
+		void draw(glm::mat4&, GLuint&),
+			 deleteTerrain();
 	private:
 		int rnum;
 		float *vertexData, *textureData, *normalData;

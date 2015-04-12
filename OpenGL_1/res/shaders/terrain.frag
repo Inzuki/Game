@@ -12,7 +12,6 @@ struct Lamp {
 	vec3 position;
 	vec3 ambient;
 	vec3 diffuse;
-	vec3 specular;
 };
 
 in vec3 outNormal;
@@ -25,8 +24,6 @@ uniform vec3 viewPos;
 uniform Material material;
 uniform Lamp light;
 uniform vec2 resolution;
-uniform mat4 P;
-uniform mat4 V;
 uniform mat4 VP;
 
 void main(){
