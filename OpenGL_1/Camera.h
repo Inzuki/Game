@@ -12,5 +12,7 @@ void computeMats(sf::Window&, sf::Clock, float);
 void setCursorLocked();
 
 glm::vec3 picker(sf::Window&);
+bool coll(glm::vec3, float, glm::vec3, glm::vec3);
+void get3DRay(glm::vec3*, glm::vec3*, sf::Window&);
 
 #endif

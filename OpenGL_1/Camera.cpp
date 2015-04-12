@@ -37,11 +37,8 @@ void computeMats(sf::Window &window, sf::Clock clk, float deltaTime){
 
 		horizontalAngle += mouseSpeed * float(window.getSize().x / 2 - xpos);
 		verticalAngle   += mouseSpeed * float(window.getSize().y / 2 - ypos);
-	}else {
+	}else
 		window.setMouseCursorVisible(true);
-
-		printf("%f, %f, %f\n", picker(window).x, picker(window).y, picker(window).z);
-	}
 
 	glm::vec3 direction(
 		cos(verticalAngle) * sin(horizontalAngle),
@@ -76,7 +73,37 @@ void computeMats(sf::Window &window, sf::Clock clk, float deltaTime){
 	);
 }
 
+bool coll(glm::vec3 pos, float r, glm::vec3 vA, glm::vec3 vB){
+	glm::vec3 dirToSphere = pos - vA;
+	glm::vec3 lineDir = glm::normalize(vB - vA);
+	float lineLength = glm::distance(vA, vB);
+	float t = glm::dot(dirToSphere, lineDir);
+	glm::vec3 closestPoint;
 
+	if(t <= 0.f)
+		closestPoint = vA;
+	else if(t >= lineLength)
+		closestPoint = vB;
+	else
+		closestPoint = vA + lineDir * t;
+
+	return glm::distance(pos, closestPoint) <= r;
+}
+
+void get3DRay(glm::vec3 *v1, glm::vec3 *v2, sf::Window &window){
+	glm::vec4 viewport = glm::vec4(0.f, 0.f, window.getSize().x, window.getSize().y);
+
+	*v1 = glm::unProject(glm::vec3(float(sf::Mouse::getPosition().x), float(sf::Mouse::getPosition().y), 0.f),
+						 getViewMatrix(),
+						 getProjectionMatrix(),
+						 viewport
+	);
+	*v2 = glm::unProject(glm::vec3(float(sf::Mouse::getPosition().x), float(sf::Mouse::getPosition().y), 1.f),
+						 getViewMatrix(),
+						 getProjectionMatrix(),
+						 viewport
+	);
+}
 
 glm::vec3 picker(sf::Window &window){
 	// get the viewport coordinates

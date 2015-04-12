@@ -1,17 +1,28 @@
 #include "Terrain.h"
 #include "Camera.h"
+#include "Shader.h"
 
 float Terrain::avgPixel(sf::Color c){
 	return (c.r + c.g + c.b) / 3;
 }
 
-Terrain::Terrain(const char *file, const char *texFilePath){
-
+Terrain::Terrain(const char *file, const char *texFilePath, sf::Window &window){
 	texture = loadTexture(texFilePath);
 	texture2 = loadTexture("sand.jpg");
 	texture3 = loadTexture("rock.jpg");
 	texture4 = loadTexture("path.png");
 	texture5 = loadTexture("brick.png");
+
+	shader = loadShaders("terrain.vert", "terrain.frag");
+	glUseProgram(shader);
+	glUniform1i(glGetUniformLocation(shader, "material.diffuse"), 0);
+	glUniform1i(glGetUniformLocation(shader, "material.two"),     1);
+	glUniform1i(glGetUniformLocation(shader, "material.thr"),     2);
+	glUniform1i(glGetUniformLocation(shader, "material.path"),    3);
+	glUniform1i(glGetUniformLocation(shader, "material.fou"),     4);
+	glUniform2f(glGetUniformLocation(shader, "resolution"), window.getSize().x, window.getSize().y);
+	glUniform3f(glGetUniformLocation(shader, "light.ambient"),  0.2f, 0.2f, 0.2f);
+	glUniform3f(glGetUniformLocation(shader, "light.diffuse"),  0.5f, 0.5f, 0.5f);
 
 	sf::Image img;
 	char texFile[128];
@@ -131,7 +142,16 @@ Terrain::Terrain(const char *file, const char *texFilePath){
 	glBindVertexArray(0);
 }
 
-void Terrain::draw(glm::mat4 &VP, GLuint &shader){
+void Terrain::draw(glm::mat4 &VP, std::vector<Lamp>&lamps){
+	glUseProgram(shader);
+
+	for(int i = 0; i < lamps.size(); i++)
+		glUniform3f(glGetUniformLocation(shader, "light.position"),
+					lamps[i].getLampPos().x,
+					lamps[i].getLampPos().y,
+					lamps[i].getLampPos().z
+		);
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -157,11 +177,16 @@ void Terrain::draw(glm::mat4 &VP, GLuint &shader){
 }
 
 float Terrain::getHeight(float x, float z){
-	float y = 0.f;
+	float y = NULL;
 	
 	y = heights[(int)z][(int)x];
 
 	return y;
+}
+
+void Terrain::updateRes(sf::Window &window){
+	glUseProgram(shader);
+	glUniform2f(glGetUniformLocation(shader, "resolution"), window.getSize().x, window.getSize().y);
 }
 
 void Terrain::deleteTerrain(){
@@ -174,4 +199,5 @@ void Terrain::deleteTerrain(){
 	glDeleteBuffers(1, &vertBuff);
 	glDeleteBuffers(1, &normBuff);
 	glDeleteBuffers(1, &texBuff);
+	glDeleteProgram(shader);
 }

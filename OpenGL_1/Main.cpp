@@ -37,6 +37,7 @@ int main(){
 
 	// load models
 	OBJ stall("stall.obj", "stallTexture.png");
+	OBJ cube("cube.obj",  NULL);
 
 	// load skyboxes
 	std::vector<const GLchar*> faces;
@@ -94,6 +95,14 @@ int main(){
 				glViewport(0, 0, window.getSize().x, window.getSize().y);
 				terrain1.updateRes(window);
 			}
+
+			if(event.type == sf::Event::MouseButtonPressed){
+				glm::vec3 v1, v2;
+				get3DRay(&v1, &v2, window);
+
+				if(coll(glm::vec3(1.f, 10.f, 1.f), 2, v1, v2))
+					printf("YES\n");
+			}
 		}
 		// compute matrices based on keyboard and mouse input
 		computeMats(window, clk, deltaTime);
@@ -101,6 +110,7 @@ int main(){
 		// clear buffer
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		
 		glm::mat4 VP = getProjectionMatrix() * getViewMatrix();
 
@@ -134,6 +144,12 @@ int main(){
 		model = glm::mat4();
 		model = glm::translate(model, glm::vec3(25.f, 0.f, 25.f));
 		stall.draw(model, VP, lightingShader);
+
+		// draw cube
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		model = glm::mat4();
+		model = glm::translate(model, glm::vec3(1.f, 10.f, 1.f));
+		cube.draw(model, VP, lightingShader);
 		
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
