@@ -104,28 +104,3 @@ void get3DRay(glm::vec3 *v1, glm::vec3 *v2, sf::Window &window){
 						 viewport
 	);
 }
-
-glm::vec3 picker(sf::Window &window){
-	// get the viewport coordinates
-	float x = (2.f * sf::Mouse::getPosition().x) / window.getSize().x - 1.f,
-		  y = 1.f - (2.f * sf::Mouse::getPosition().y) / window.getSize().y;
-	// get the normalized device coordinates
-	glm::vec3 ray_nds(x, y, 1.f);
-
-	// get the homogeneous clip coordinates
-	glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.f, 1.f);
-
-	// get the eye coordinates
-	glm::vec4 ray_eye = glm::inverse(getProjectionMatrix()) * ray_clip;
-	ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.f, 0.f);
-
-	// get the world coordinates
-	glm::vec3 ray_world(
-		(glm::inverse(getViewMatrix()) * ray_eye).x,
-		(glm::inverse(getViewMatrix()) * ray_eye).y,
-		(glm::inverse(getViewMatrix()) * ray_eye).z
-	);
-	
-	// return the normalized vector
-	return glm::normalize(ray_world);
-}

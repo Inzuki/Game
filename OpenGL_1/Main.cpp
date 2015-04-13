@@ -24,7 +24,6 @@ int main(){
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
 	// load shaders
 	GLuint lampShader     = loadShaders("vertex_lamp.txt", "fragment_lamp.txt");
@@ -64,6 +63,10 @@ int main(){
 	glUniform1i(glGetUniformLocation(lightingShader, "material.diffuse"),  0);
     glUniform1f(glGetUniformLocation(lightingShader, "material.shininess"), 32.0f);
 
+	glm::mat4 boxModel;
+	glm::vec3 pos(1.f, 5.f, 1.f);
+	boxModel = glm::translate(boxModel, pos);
+
 	// run window
 	bool running = true;
 	while(running){
@@ -86,10 +89,9 @@ int main(){
 				break;
 			}
 
-			if(event.type == sf::Event::KeyReleased){
+			if(event.type == sf::Event::KeyReleased)
 				if(event.key.code == sf::Keyboard::Q)
 					setCursorLocked();
-			}
 
 			if(event.type == sf::Event::Resized){
 				glViewport(0, 0, window.getSize().x, window.getSize().y);
@@ -100,8 +102,33 @@ int main(){
 				glm::vec3 v1, v2;
 				get3DRay(&v1, &v2, window);
 
-				if(coll(glm::vec3(1.f, 10.f, 1.f), 2, v1, v2))
-					printf("YES\n");
+				// set a restriction on checking the area around the player
+				// so it doesn't check over the entire map every call
+				int x_min = 0, z_min = 0, x_max = 0, z_max = 0;
+
+				(int(getPos().x) - 25 < 0) ? x_min = 0 : x_min = int(getPos().x) - 25;
+				(int(getPos().z) - 25 < 0) ? z_min = 0 : z_min = int(getPos().z) - 25;
+
+				(int(getPos().x) + 25 > 399) ? x_max = 399 : x_max = int(getPos().x) + 25;
+				(int(getPos().z) + 25 > 399) ? z_max = 399 : z_max = int(getPos().z) + 25;
+
+				for(int z = z_min; z < z_max; z++){
+					for(int x = x_min; x < x_max; x++){
+						if(coll(glm::vec3(x, terrain1.getHeight(x, z), z), 2, v1, v2)){
+							boxModel = glm::translate(
+								boxModel, glm::vec3(
+									float(x) - pos.x,
+									terrain1.getHeight(x, z) + 1.f - pos.y,
+									float(z) - pos.z
+								)
+							);
+
+							pos = glm::vec3(float(x), terrain1.getHeight(x, z) + 1.f, float(z));
+
+							break;
+						}
+					}
+				}
 			}
 		}
 		// compute matrices based on keyboard and mouse input
@@ -110,7 +137,6 @@ int main(){
 		// clear buffer
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		
 		glm::mat4 VP = getProjectionMatrix() * getViewMatrix();
 
@@ -146,10 +172,7 @@ int main(){
 		stall.draw(model, VP, lightingShader);
 
 		// draw cube
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		model = glm::mat4();
-		model = glm::translate(model, glm::vec3(1.f, 10.f, 1.f));
-		cube.draw(model, VP, lightingShader);
+		cube.draw(boxModel, VP, lightingShader);
 		
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
