@@ -3,9 +3,9 @@
 #define RAY_RANGE 600
 #define RECURSION_COUNT 200
 
-glm::mat4 view;
-glm::mat4 projection;
+glm::mat4 view, projection;
 glm::vec3 position = glm::vec3(10, 5, 10);
+glm::vec3 direction, right, up;
 
 float horizontalAngle = 3.14f,
 	  verticalAngle   = 45.f,
@@ -37,40 +37,40 @@ void computeMats(sf::Window &window, sf::Clock clk, float deltaTime){
 
 		horizontalAngle += mouseSpeed * float(window.getSize().x / 2 - xpos);
 		verticalAngle   += mouseSpeed * float(window.getSize().y / 2 - ypos);
+
+		direction = glm::vec3(
+			cos(verticalAngle) * sin(horizontalAngle),
+			sin(verticalAngle),
+			cos(verticalAngle) * cos(horizontalAngle)
+		);
+
+		right = glm::vec3(
+			sin(horizontalAngle - 3.14f / 2.f),
+			0,
+			cos(horizontalAngle - 3.14f / 2.f)
+		);
+
+		// handle movement
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+			position += direction * speed * deltaTime;
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+			position -= direction * speed * deltaTime;
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+			position += right * speed * deltaTime;
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+			position -= right * speed * deltaTime;
+
+		glm::vec3 up = glm::cross(right, direction);
+
+		view = glm::lookAt(
+			position,
+			position + direction,
+			up
+		);
 	}else
 		window.setMouseCursorVisible(true);
 
-	glm::vec3 direction(
-		cos(verticalAngle) * sin(horizontalAngle),
-		sin(verticalAngle),
-		cos(verticalAngle) * cos(horizontalAngle)
-	);
-
-	glm::vec3 right(
-		sin(horizontalAngle - 3.14f / 2.f),
-		0,
-		cos(horizontalAngle - 3.14f / 2.f)
-	);
-
-	glm::vec3 up = glm::cross(right, direction);
-
-	// handle movement
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-		position += direction * speed * deltaTime;
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-		position -= direction * speed * deltaTime;
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-		position += right * speed * deltaTime;
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-		position -= right * speed * deltaTime;
-
-	projection = glm::perspective(initFOV, 4.f / 3.f, .1f, 250.f);
-
-	view = glm::lookAt(
-		position,
-		position + direction,
-		up
-	);
+	projection = glm::perspective(initFOV, 4.f / 3.f, .1f, 225.f);
 }
 
 bool coll(glm::vec3 pos, float r, glm::vec3 vA, glm::vec3 vB){
