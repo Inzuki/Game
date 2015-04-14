@@ -7,6 +7,14 @@
 #include "Terrain.h"
 #include "Texture.h"
 
+int ID = -1;
+
+struct Player {
+	int id;
+	char name[1024];
+	float x, y, z;
+};
+
 int main(){
 	// initialize OpenGL window
 	sf::Window window(sf::VideoMode(1600, 1024), "OpenGL", sf::Style::Resize, sf::ContextSettings(64));
@@ -17,10 +25,7 @@ int main(){
 	char fps[32];
 
 	// initialize GLEW
-	glewExperimental = true;
-	GLenum err = glewInit();
-	if(err != GLEW_OK)
-		std::cout << "glewInit() failed." << std::endl;
+	glewExperimental = true; glewInit();
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -51,6 +56,7 @@ int main(){
 	// load terrain
 	Terrain terrain1("height.jpg", "sandgrass.jpg", window);
 
+	// light properties
 	glUseProgram(lightingShader);
 
 	for(int i = 0; i < lamps.size(); i++){
@@ -67,10 +73,92 @@ int main(){
 	glm::vec3 pos(1.f, 5.f, 1.f);
 	boxModel = glm::translate(boxModel, pos);
 
-	// run window
+	#pragma region server
+	// get name
+	printf("Please enter a name: ");
+	char moniker[1024];
+	gets(moniker);
+
+	// connect to server
+	const unsigned short port = 50001;
+	std::string serverIp = "134.129.55.96";
+	//std::string serverIp = "127.0.0.1";
+	sf::IpAddress server = serverIp;
+
+	printf("Connecting to %s...\n", serverIp.c_str());
+	
+	// tell the server the client is attempting to connect
+	char sendMsg[1024];
+	sprintf(sendMsg, "+%s", moniker);
+	
+	sf::UdpSocket socket;
+	socket.send(sendMsg, sizeof(sendMsg), server, port);
+
+	// receive from the server if the client successfully connected
+	char buffer[1024];
+	std::size_t received;
+	sf::IpAddress sender;
+	unsigned short senderPort;
+	socket.receive(buffer, sizeof(buffer), received, sender, senderPort);
+
+	// if the client successfully connected, the server should send back a success signal
+	if(buffer[0] == 'y'){
+		char buff[1024];
+		for(int i = 0; i < sizeof(buffer); i++)
+			buff[i] = buffer[i + 1];
+
+		ID = atoi(buff);
+
+		printf("Connected to %s successfully (given ID %i).\n", serverIp.c_str(), ID);
+	}
+	printf("Other connected players:\n");
+
+	// insert this player into the list
+	std::vector<Player> players;
+	Player tempPlayer;
+	tempPlayer.id = ID;
+	sprintf(tempPlayer.name, "Inzuki");
+	players.push_back(tempPlayer);
+
+	socket.setBlocking(false);
+	#pragma endregion server
+
 	bool running = true;
 	while(running){
-		// phys testing
+		#pragma region receiveFromServer
+		// receive from the server
+		if(socket.receive(buffer, sizeof(buffer), received, sender, senderPort) == sf::Socket::Done){
+			char buff[1024];
+			for(int i = 0; i < sizeof(buffer); i++)
+				buff[i] = buffer[i + 1];
+
+			switch(buffer[0]){
+				// when a new player connects
+				case 'a':{
+					sscanf(buff, "%i,%s", &tempPlayer.id, &tempPlayer.name);
+					players.push_back(tempPlayer);
+
+					printf("%s has connected.", tempPlayer.name);
+				}break;
+				// inform the player of other connected players
+				case 'A':{
+					sscanf(buff, "%i,%s", &tempPlayer.id, &tempPlayer.name);
+					printf("- %s\n", tempPlayer.name);
+					players.push_back(tempPlayer);
+				}break;
+				// when a player disconnects
+				case 'r':{
+					printf("%s has disconnected.", players[atoi(buff)].name);
+
+					for(int i = 0; i < players.size(); i++)
+						if(players[i].id == atoi(buff))
+							players.erase(players.begin() + i);
+				}break;
+			}
+		}
+		#pragma endregion receiveFromServer
+
+		// set the player's height to the terrain's height at that spot
 		setPosY(terrain1.getHeight(getPos().x, getPos().z) + 5.f);
 
 		// calculate timestamp
@@ -85,6 +173,10 @@ int main(){
 		sf::Event event;
         while(window.pollEvent(event)){
 			if(event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)){
+				char sendMsg[1024];
+				sprintf(sendMsg, "-%i", ID);
+				socket.send(sendMsg, sizeof(sendMsg), server, port);
+
 				running = false;
 				break;
 			}
@@ -104,13 +196,15 @@ int main(){
 
 				// set a restriction on checking the area around the player
 				// so it doesn't check over the entire map every call
+				float range = 25.f;
+
 				int x_min = 0, z_min = 0, x_max = 0, z_max = 0;
 
-				(int(getPos().x) - 25 < 0) ? x_min = 0 : x_min = int(getPos().x) - 25;
-				(int(getPos().z) - 25 < 0) ? z_min = 0 : z_min = int(getPos().z) - 25;
+				(int(getPos().x) - range < 0) ? x_min = 0 : x_min = int(getPos().x) - range;
+				(int(getPos().z) - range < 0) ? z_min = 0 : z_min = int(getPos().z) - range;
 
-				(int(getPos().x) + 25 > 399) ? x_max = 399 : x_max = int(getPos().x) + 25;
-				(int(getPos().z) + 25 > 399) ? z_max = 399 : z_max = int(getPos().z) + 25;
+				(int(getPos().x) + range > 399) ? x_max = 399 : x_max = int(getPos().x) + range;
+				(int(getPos().z) + range > 399) ? z_max = 399 : z_max = int(getPos().z) + range;
 
 				for(int z = z_min; z < z_max; z++){
 					for(int x = x_min; x < x_max; x++){
@@ -173,6 +267,18 @@ int main(){
 
 		// draw cube
 		cube.draw(boxModel, VP, lightingShader);
+
+		// draw players
+		for(int i = 0; i < players.size(); i++){
+			if(players[i].id != ID){
+				model = glm::mat4();
+				model = glm::translate(model, glm::vec3(players[i].x,
+														players[i].y,
+														players[i].z));
+
+				cube.draw(model, VP, lightingShader);
+			}
+		}
 		
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
@@ -186,9 +292,9 @@ int main(){
 		
 		model = glm::mat4();
 		model = glm::translate(model, glm::vec3(
-			currentTime * 15.f - 50.f,
+			currentTime * 5.f - 50.f,
 			65.f,
-			currentTime * 15.f - 50.f)
+			currentTime * 5.f - 50.f)
 		);
 
 		for(int i = 0; i < lamps.size(); i++)

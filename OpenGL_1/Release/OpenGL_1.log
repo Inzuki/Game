@@ -1,44 +1,9 @@
-﻿Build started 4/12/2015 10:01:01 PM.
-     1>Project "C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\OpenGL_1\OpenGL_1.vcxproj" on node 2 (Build target(s)).
-     1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IC:\GLM\glm /I"C:\GLEW\glew-1.12.0\include" /I"C:\SFML 2.2 x32\include" /Zi /nologo /W3 /WX- /sdl /O2 /Oi /Oy- /GL /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Camera.cpp Lamp.cpp Main.cpp OBJ.cpp Shader.cpp Terrain.cpp Texture.cpp
-         Camera.cpp
-         Lamp.cpp
-         Main.cpp
-     1>Main.cpp(56): warning C4018: '<' : signed/unsigned mismatch
-     1>Main.cpp(117): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
-     1>Main.cpp(121): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
-     1>Main.cpp(126): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
-     1>Main.cpp(158): warning C4018: '<' : signed/unsigned mismatch
-     1>Main.cpp(194): warning C4018: '<' : signed/unsigned mismatch
-     1>Main.cpp(207): warning C4018: '<' : signed/unsigned mismatch
-         OBJ.cpp
-         Shader.cpp
-         Terrain.cpp
-     1>Terrain.cpp(6): warning C4244: 'return' : conversion from 'int' to 'float', possible loss of data
-     1>Terrain.cpp(23): warning C4244: 'argument' : conversion from 'unsigned int' to 'GLfloat', possible loss of data
-     1>Terrain.cpp(32): warning C4018: '<' : signed/unsigned mismatch
-     1>Terrain.cpp(35): warning C4018: '<' : signed/unsigned mismatch
-     1>Terrain.cpp(36): warning C4018: '<' : signed/unsigned mismatch
-     1>Terrain.cpp(52): warning C4018: '<' : signed/unsigned mismatch
-     1>Terrain.cpp(53): warning C4018: '<' : signed/unsigned mismatch
-     1>Terrain.cpp(148): warning C4018: '<' : signed/unsigned mismatch
-     1>Terrain.cpp(189): warning C4244: 'argument' : conversion from 'unsigned int' to 'GLfloat', possible loss of data
-         Texture.cpp
-     1>Texture.cpp(20): warning C4244: 'argument' : conversion from 'GLuint' to 'GLfloat', possible loss of data
-       Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\Release\OpenGL_1.exe" /NOLOGO /LIBPATH:"C:\GLEW\glew-1.12.0\lib\Release\Win32" /LIBPATH:"C:\SFML 2.2 x32\lib" "sfml-graphics.lib" "sfml-audio.lib" "sfml-window.lib" "sfml-system.lib" "sfml-network.lib" opengl32.lib glu32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib glew32s.lib glew32.lib glew32s.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\Release\OpenGL_1.pdb" /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\Release\OpenGL_1.lib" /MACHINE:X86 /SAFESEH Release\Camera.obj
-         Release\Lamp.obj
-         Release\Main.obj
-         Release\OBJ.obj
-         Release\Shader.obj
-         Release\Terrain.obj
-         Release\Texture.obj
-         Generating code
-         Finished generating code
-         OpenGL_1.vcxproj -> C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\Release\OpenGL_1.exe
-     1>Done Building Project "C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\OpenGL_1\OpenGL_1.vcxproj" (Build target(s)).
+﻿Build started 4/13/2015 8:30:06 PM.
+     1>Project "C:\Users\Inzuki\documents\visual studio 2013\Projects\OpenGL_1\OpenGL_1\OpenGL_1.vcxproj" on node 2 (Build target(s)).
+     1>Link:
+         OpenGL_1.vcxproj -> C:\Users\Inzuki\documents\visual studio 2013\Projects\OpenGL_1\Release\OpenGL_1.exe
+     1>Done Building Project "C:\Users\Inzuki\documents\visual studio 2013\Projects\OpenGL_1\OpenGL_1\OpenGL_1.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:08.52
+Time Elapsed 00:00:00.04
