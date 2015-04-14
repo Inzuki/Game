@@ -82,8 +82,8 @@ int main(){
 
 	// connect to server
 	const unsigned short port = 50001;
-	std::string serverIp = "134.129.55.96";
-	//std::string serverIp = "127.0.0.1";
+	//std::string serverIp = "134.129.55.96";
+	std::string serverIp = "127.0.0.1";
 	sf::IpAddress server = serverIp;
 
 	printf("Connecting to %s...\n", serverIp.c_str());
@@ -150,6 +150,10 @@ int main(){
 				case 'A':{
 					sscanf(buff, "%i,%s", &tempPlayer.id, &tempPlayer.name);
 					printf("- %s\n", tempPlayer.name);
+					tempPlayer.pos.x = 0.f;
+					tempPlayer.pos.y = 0.f;
+					tempPlayer.pos.z = 0.f;
+					tempPlayer.model = glm::mat4();
 					players.push_back(tempPlayer);
 				}break;
 				// when a player disconnects
@@ -165,10 +169,17 @@ int main(){
 					int id; float tX, tY, tZ;
 					sscanf(buff, "%i,%f,%f,%f", &id, &tX, &tY, &tZ);
 
-					players[id].model = glm::translate(players[id].model, glm::vec3(tX - players[id].pos.x,
-																					tY - players[id].pos.y,
-																					tZ - players[id].pos.z));
-					players[id].pos = glm::vec3(tX, tY, tZ);
+					for(int i = 0; i < players.size(); i++){
+						if(players[i].id == atoi(buff)){
+							players[i].model =
+								glm::translate(players[i].model,
+											   glm::vec3(tX - players[i].pos.x,
+														 tY - players[i].pos.y,
+														 tZ - players[i].pos.z));
+
+							players[i].pos = glm::vec3(tX, tY, tZ);
+						}
+					}
 				}break;
 			}
 		}
