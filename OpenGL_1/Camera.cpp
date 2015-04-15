@@ -18,14 +18,27 @@ bool cursorLocked = true;
 glm::mat4 getViewMatrix(){ return view; }
 glm::mat4 getProjectionMatrix(){ return projection; }
 glm::vec3 getPos(){ return position; }
-void setPosY(float y){ position.y = y; }
 
-void setCursorLocked(){
-	if(cursorLocked)
-		cursorLocked = false;
-	else
-		cursorLocked = true;
+void moveY(float y){
+	// the speed at which the player changes height
+	float changeSpeed = 0.1f,
+	// some range
+		  range = 0.05f;
+
+	// if the height is greater than the new height
+	if(position.y > (y + range)){
+		// lower the height to the new height
+		position.y -= (changeSpeed * abs(position.y - y)) / 0.5f;
+	}else
+	// else if the height is less than the new height
+	if(position.y < (y - range)){
+		// rise the height to the new height
+		position.y += (changeSpeed * abs(position.y - y)) / 0.5f;
+	}else
+		position.y = y;
 }
+
+void setCursorLocked(){ if(cursorLocked) cursorLocked = false; else cursorLocked = true; }
 
 void computeMats(sf::Window &window, sf::Clock clk, float deltaTime){
 	double xpos = sf::Mouse::getPosition().x,
@@ -51,14 +64,22 @@ void computeMats(sf::Window &window, sf::Clock clk, float deltaTime){
 		);
 
 		// handle movement
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-			position += direction * speed * deltaTime;
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-			position -= direction * speed * deltaTime;
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-			position += right * speed * deltaTime;
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-			position -= right * speed * deltaTime;
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::W)){
+			position.x += direction.x * speed * deltaTime;
+			position.z += direction.z * speed * deltaTime;
+		}
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
+			position.x -= direction.x * speed * deltaTime;
+			position.z -= direction.z * speed * deltaTime;
+		}
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::D)){
+			position.x += right.x * speed * deltaTime;
+			position.z += right.z * speed * deltaTime;
+		}
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
+			position.x -= right.x * speed * deltaTime;
+			position.z -= right.z * speed * deltaTime;
+		}
 
 		glm::vec3 up = glm::cross(right, direction);
 

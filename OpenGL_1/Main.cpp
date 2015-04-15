@@ -76,9 +76,9 @@ int main(){
 
 	#pragma region server
 	// get name
-	printf("Please enter a name: ");
-	char moniker[1024];
-	gets(moniker);
+	printf("Please enter a name: "); printf("Inzuki\n");
+	char moniker[1024]; sprintf(moniker, "Inzuki");
+	//gets(moniker);
 
 	// connect to server
 	const unsigned short port = 50001;
@@ -186,7 +186,7 @@ int main(){
 		#pragma endregion receiveFromServer
 
 		// set the player's height to the terrain's height at that spot
-		setPosY(terrain1.getHeight(getPos().x, getPos().z) + 5.f);
+		moveY(terrain1.getHeight(getPos().x, getPos().z) + 5.f);
 
 		// calculate timestamp
 		static float lastTime = clk.getElapsedTime().asSeconds();
@@ -278,7 +278,7 @@ int main(){
 
 		// basic moving
 		if(moving){
-			if(moveClk.getElapsedTime().asSeconds() >= 0.15f){
+			if(moveClk.getElapsedTime().asSeconds() >= 0.1f){
 				sprintf(sendMsg, "m%i,%f,%f,%f", ID, getPos().x, getPos().y, getPos().z);
 				socket.send(sendMsg, sizeof(sendMsg), server, port);
 
