@@ -21,7 +21,7 @@ glm::vec3 getPos(){ return position; }
 
 void moveY(float y){
 	// the speed at which the player changes height
-	float changeSpeed = 0.1f,
+	float changeSpeed = 0.15f,
 	// some range
 		  range = 0.05f;
 
