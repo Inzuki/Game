@@ -10,10 +10,11 @@
 int ID = -1;
 
 struct Player {
-	int id;
+	int id, speed;
 	char name[1024];
-	glm::vec3 pos;
+	glm::vec3 pos, dir;
 	glm::mat4 model;
+	bool moving[4];
 };
 
 int main(){
@@ -124,7 +125,13 @@ int main(){
 	socket.setBlocking(false);
 	#pragma endregion server
 
-	bool running = true, moving = false;
+	bool running = true;
+	bool moving[4];
+	moving[0] = false;
+	moving[1] = false;
+	moving[2] = false;
+	moving[3] = false;
+
 	sf::Clock moveClk;
 	while(running){
 		#pragma region receiveFromServer
@@ -141,7 +148,15 @@ int main(){
 					tempPlayer.pos.x = 0.f;
 					tempPlayer.pos.y = 0.f;
 					tempPlayer.pos.z = 0.f;
+					tempPlayer.dir.x = 0.f;
+					tempPlayer.dir.y = 0.f;
+					tempPlayer.dir.z = 0.f;
+					tempPlayer.speed = 25.f;
 					tempPlayer.model = glm::mat4();
+					tempPlayer.moving[0] = false;
+					tempPlayer.moving[1] = false;
+					tempPlayer.moving[2] = false;
+					tempPlayer.moving[3] = false;
 					players.push_back(tempPlayer);
 
 					printf("%s has connected.\n", tempPlayer.name);
@@ -153,7 +168,15 @@ int main(){
 					tempPlayer.pos.x = 0.f;
 					tempPlayer.pos.y = 0.f;
 					tempPlayer.pos.z = 0.f;
+					tempPlayer.dir.x = 0.f;
+					tempPlayer.dir.y = 0.f;
+					tempPlayer.dir.z = 0.f;
+					tempPlayer.speed = 25.f;
 					tempPlayer.model = glm::mat4();
+					tempPlayer.moving[0] = false;
+					tempPlayer.moving[1] = false;
+					tempPlayer.moving[2] = false;
+					tempPlayer.moving[3] = false;
 					players.push_back(tempPlayer);
 				}break;
 				// when a player disconnects
@@ -164,20 +187,36 @@ int main(){
 						if(players[i].id == atoi(buff))
 							players.erase(players.begin() + i);
 				}break;
-				// when a player moves
+				// when a player begins moving
 				case 'm':{
-					int id; float tX, tY, tZ;
-					sscanf(buff, "%i,%f,%f,%f", &id, &tX, &tY, &tZ);
+					int id, key; float dirX, dirZ;
+					sscanf(buff, "%i,%i,%f,%f", &id, &key, &dirX, &dirZ);
 
 					for(int i = 0; i < players.size(); i++){
-						if(players[i].id == atoi(buff)){
-							players[i].model =
+						if(players[i].id == id){
+							players[i].moving[key] = true;
+
+							players[i].dir.x = dirX;
+							players[i].dir.z = dirZ;
+						}
+					}
+				}break;
+				// when a player stops moving
+				case 's':{
+					int id, key;
+					sscanf(buff, "%i,%i", &id, &key);
+
+					for(int i = 0; i < players.size(); i++){
+						if(players[i].id == id){
+							players[i].moving[key] = false;
+
+							/*players[i].model =
 								glm::translate(players[i].model,
 											   glm::vec3(tX - players[i].pos.x,
 														 tY - players[i].pos.y,
 														 tZ - players[i].pos.z));
 
-							players[i].pos = glm::vec3(tX, tY, tZ);
+							players[i].pos = glm::vec3(tX, tY, tZ);*/
 						}
 					}
 				}break;
@@ -193,7 +232,7 @@ int main(){
 		float currentTime     = clk.getElapsedTime().asSeconds(),
 			  deltaTime       = float(currentTime - lastTime);
 		// update window title to display framerate
-		sprintf(fps, "OpenGL Testing - FPS: %f", 1.f / deltaTime);
+		sprintf(fps, "[OpenGL] - FPS: %f", (1.f / deltaTime));
 		window.setTitle(fps);
 
 		// handle keyboard input
@@ -207,19 +246,56 @@ int main(){
 				running = false;
 				break;
 			}
-			// when the player moves
+
 			if(event.type == sf::Event::KeyPressed){
-				if(event.key.code == sf::Keyboard::W)
-					moving = true;
+				// when the player moves
+				if(event.key.code == sf::Keyboard::W && !moving[0]){
+					sprintf(sendMsg, "m%i,%i,%f,%f", ID, 0, getDir().x, getDir().z);
+					socket.send(sendMsg, sizeof(sendMsg), server, port);
+					moving[0] = true;
+				}
+				if(event.key.code == sf::Keyboard::A && !moving[1]){
+					sprintf(sendMsg, "m%i,%i,%f,%f", ID, 1, getDir().x, getDir().z);
+					socket.send(sendMsg, sizeof(sendMsg), server, port);
+					moving[1] = true;
+				}
+				if(event.key.code == sf::Keyboard::S && !moving[2]){
+					sprintf(sendMsg, "m%i,%i,%f,%f", ID, 2, getDir().x, getDir().z);
+					socket.send(sendMsg, sizeof(sendMsg), server, port);
+					moving[2] = true;
+				}
+				if(event.key.code == sf::Keyboard::D && !moving[3]){
+					sprintf(sendMsg, "m%i,%i,%f,%f", ID, 3, getDir().x, getDir().z);
+					socket.send(sendMsg, sizeof(sendMsg), server, port);
+					moving[3] = true;
+				}
 			}
+
 			if(event.type == sf::Event::KeyReleased){
 				// lock/unlock the cursor
 				if(event.key.code == sf::Keyboard::Q)
 					setCursorLocked();
+
 				// when the player stops moving
 				if(event.key.code == sf::Keyboard::W){
-					moving = false;
-					moveClk.restart();
+					sprintf(sendMsg, "s%i,%i", ID, 0);
+					socket.send(sendMsg, sizeof(sendMsg), server, port);
+					moving[0] = false;
+				}
+				if(event.key.code == sf::Keyboard::A){
+					sprintf(sendMsg, "s%i,%i", ID, 1);
+					socket.send(sendMsg, sizeof(sendMsg), server, port);
+					moving[1] = false;
+				}
+				if(event.key.code == sf::Keyboard::S){
+					sprintf(sendMsg, "s%i,%i", ID, 2);
+					socket.send(sendMsg, sizeof(sendMsg), server, port);
+					moving[2] = false;
+				}
+				if(event.key.code == sf::Keyboard::D){
+					sprintf(sendMsg, "s%i,%i", ID, 3);
+					socket.send(sendMsg, sizeof(sendMsg), server, port);
+					moving[3] = false;
 				}
 			}
 			// when the window is resized, fix the viewport
@@ -249,7 +325,7 @@ int main(){
 					for(int x = x_min; x < x_max; x++){
 						if(coll(glm::vec3(x, terrain1.getHeight(x, z), z), 2, v1, v2)){
 							// set the box to the position the cursor is
-							// pointing at rather than translating it by that much
+							// pointing at, rather than translating it by that much
 							boxModel = glm::translate(
 								boxModel, glm::vec3(
 									float(x) - pos.x,
@@ -257,7 +333,6 @@ int main(){
 									float(z) - pos.z
 								)
 							);
-
 							// set the position to the new position
 							pos = glm::vec3(float(x), terrain1.getHeight(x, z) + 1.f, float(z));
 
@@ -275,16 +350,6 @@ int main(){
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		glm::mat4 VP = getProjectionMatrix() * getViewMatrix();
-
-		// basic moving
-		if(moving){
-			if(moveClk.getElapsedTime().asSeconds() >= 0.1f){
-				sprintf(sendMsg, "m%i,%f,%f,%f", ID, getPos().x, getPos().y, getPos().z);
-				socket.send(sendMsg, sizeof(sendMsg), server, port);
-
-				moveClk.restart();
-			}
-		}
 
 		// skybox
 		glDepthMask(GL_FALSE);
@@ -322,8 +387,18 @@ int main(){
 
 		// draw players
 		for(int i = 0; i < players.size(); i++){
-			if(players[i].id != ID)
+			if(players[i].id != ID){
+				if(players[i].moving[0]){
+					players[i].pos.x += (players[i].dir.x * deltaTime);
+					players[i].pos.z += (players[i].dir.z * deltaTime);
+					players[i].model = glm::translate(players[i].model,
+													  glm::vec3(players[i].pos.x,
+																0.f,
+																players[i].pos.z));
+				}
+
 				cube.draw(players[i].model, VP, lightingShader);
+			}
 		}
 		
 		glDisableVertexAttribArray(0);
@@ -332,7 +407,6 @@ int main(){
 
 		// draw lamps
 		glUseProgram(lampShader);
-
 		GLuint matrixLoc = glGetUniformLocation(lampShader, "VP");
 		GLuint modelLoc  = glGetUniformLocation(lampShader, "M");
 		
@@ -342,9 +416,9 @@ int main(){
 			 65.f,
 			-50.f)
 		);
-
-		for(int i = 0; i < lamps.size(); i++)
+		for(int i = 0; i < lamps.size(); i++){
 			lamps[i].draw(model, modelLoc, matrixLoc, VP);
+		}
 
 		window.display();
 

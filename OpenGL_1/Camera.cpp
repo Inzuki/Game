@@ -18,6 +18,7 @@ bool cursorLocked = true;
 glm::mat4 getViewMatrix(){ return view; }
 glm::mat4 getProjectionMatrix(){ return projection; }
 glm::vec3 getPos(){ return position; }
+glm::vec3 getDir(){ return direction; }
 
 void moveY(float y){
 	// the speed at which the player changes height
@@ -46,10 +47,10 @@ void computeMats(sf::Window &window, sf::Clock clk, float deltaTime){
 
 	if(cursorLocked){
 		window.setMouseCursorVisible(false);
-		sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2, window.getSize().y / 2));
+		sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2.f, window.getSize().y / 2.f));
 
-		horizontalAngle += mouseSpeed * float(window.getSize().x / 2 - xpos);
-		verticalAngle   += mouseSpeed * float(window.getSize().y / 2 - ypos);
+		horizontalAngle += mouseSpeed * float(window.getSize().x / 2.f - xpos);
+		verticalAngle   += mouseSpeed * float(window.getSize().y / 2.f - ypos);
 
 		direction = glm::vec3(
 			cos(verticalAngle) * sin(horizontalAngle),

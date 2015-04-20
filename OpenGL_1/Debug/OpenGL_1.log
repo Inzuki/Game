@@ -1,33 +1,9 @@
-﻿Build started 4/14/2015 11:07:43 PM.
+﻿Build started 4/19/2015 11:20:13 PM.
      1>Project "C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\OpenGL_1\OpenGL_1.vcxproj" on node 2 (Build target(s)).
-     1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\Inzuki\Downloads\assimp-3.1.1\assimp-3.1.1\include" /IC:\GLM\glm /I"C:\GLEW\glew-1.12.0\include" /I"C:\SFML 2.2 x32\include" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Main.cpp
-         Main.cpp
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(63): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(163): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(172): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(241): warning C4244: '=' : conversion from 'float' to 'int', possible loss of data
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(242): warning C4244: '=' : conversion from 'float' to 'int', possible loss of data
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(244): warning C4244: '=' : conversion from 'float' to 'int', possible loss of data
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(245): warning C4244: '=' : conversion from 'float' to 'int', possible loss of data
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(250): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(256): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(262): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(304): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(324): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(346): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(359): warning C4018: '<' : signed/unsigned mismatch
-       Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\Debug\OpenGL_1.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\ASSIMP-build\code\Debug" /LIBPATH:"C:\GLEW\glew-1.12.0\lib\Release\Win32" /LIBPATH:"C:\SFML 2.2 x32\lib" "sfml-graphics-d.lib" "sfml-audio-d.lib" "sfml-window-d.lib" "sfml-system-d.lib" "sfml-network-d.lib" opengl32.lib glu32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib glew32.lib glew32s.lib assimpd.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\Debug\OpenGL_1.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\Debug\OpenGL_1.lib" /MACHINE:X86 Debug\Camera.obj
-         Debug\Lamp.obj
-         Debug\Main.obj
-         Debug\OBJ.obj
-         Debug\Shader.obj
-         Debug\Terrain.obj
-         Debug\Texture.obj
+     1>Link:
          OpenGL_1.vcxproj -> C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\Debug\OpenGL_1.exe
      1>Done Building Project "C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\OpenGL_1\OpenGL_1.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:01.96
+Time Elapsed 00:00:00.04

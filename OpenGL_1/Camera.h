@@ -4,9 +4,8 @@
 #include "INCLUDES.h"
 #include "Terrain.h"
 
-glm::mat4 getViewMatrix();
-glm::mat4 getProjectionMatrix();
-glm::vec3 getPos();
+glm::mat4 getViewMatrix(), getProjectionMatrix();
+glm::vec3 getPos(), getDir();
 void moveY(float);
 void computeMats(sf::Window&, sf::Clock, float);
 void setCursorLocked();
