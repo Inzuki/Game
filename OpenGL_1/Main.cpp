@@ -10,9 +10,9 @@
 int ID = -1;
 
 struct Player {
-	int id, speed;
+	int id;
 	char name[1024];
-	glm::vec3 pos, dir;
+	glm::vec3 pos, pos2, dir;
 	glm::mat4 model;
 	bool moving[4];
 };
@@ -123,7 +123,7 @@ int main(){
 	players.push_back(tempPlayer);
 
 	socket.setBlocking(false);
-	#pragma endregion server
+	#pragma endregion
 
 	bool running = true;
 	bool moving[4];
@@ -145,13 +145,9 @@ int main(){
 				// when a new player connects
 				case 'a':{
 					sscanf(buff, "%i,%s", &tempPlayer.id, &tempPlayer.name);
-					tempPlayer.pos.x = 0.f;
-					tempPlayer.pos.y = 0.f;
-					tempPlayer.pos.z = 0.f;
-					tempPlayer.dir.x = 0.f;
-					tempPlayer.dir.y = 0.f;
-					tempPlayer.dir.z = 0.f;
-					tempPlayer.speed = 25.f;
+					tempPlayer.pos = glm::vec3(0.f, 0.f, 0.f);
+					tempPlayer.dir = glm::vec3(0.f, 0.f, 0.f);
+					tempPlayer.pos2 = glm::vec3(0.f, 0.f, 0.f);
 					tempPlayer.model = glm::mat4();
 					tempPlayer.moving[0] = false;
 					tempPlayer.moving[1] = false;
@@ -165,13 +161,9 @@ int main(){
 				case 'A':{
 					sscanf(buff, "%i,%s", &tempPlayer.id, &tempPlayer.name);
 					printf("- %s\n", tempPlayer.name);
-					tempPlayer.pos.x = 0.f;
-					tempPlayer.pos.y = 0.f;
-					tempPlayer.pos.z = 0.f;
-					tempPlayer.dir.x = 0.f;
-					tempPlayer.dir.y = 0.f;
-					tempPlayer.dir.z = 0.f;
-					tempPlayer.speed = 25.f;
+					tempPlayer.pos = glm::vec3(0.f, 0.f, 0.f);
+					tempPlayer.dir = glm::vec3(0.f, 0.f, 0.f);
+					tempPlayer.pos2 = glm::vec3(0.f, 0.f, 0.f);
 					tempPlayer.model = glm::mat4();
 					tempPlayer.moving[0] = false;
 					tempPlayer.moving[1] = false;
@@ -196,33 +188,30 @@ int main(){
 						if(players[i].id == id){
 							players[i].moving[key] = true;
 
-							players[i].dir.x = dirX;
-							players[i].dir.z = dirZ;
+							players[i].dir = glm::vec3(dirX, 0.f, dirZ);
 						}
 					}
 				}break;
 				// when a player stops moving
 				case 's':{
-					int id, key;
-					sscanf(buff, "%i,%i", &id, &key);
+					int id, key; float x, z;
+					sscanf(buff, "%i,%i,%f,%f", &id, &key, &x, &z);
 
 					for(int i = 0; i < players.size(); i++){
 						if(players[i].id == id){
 							players[i].moving[key] = false;
 
-							/*players[i].model =
-								glm::translate(players[i].model,
-											   glm::vec3(tX - players[i].pos.x,
-														 tY - players[i].pos.y,
-														 tZ - players[i].pos.z));
-
-							players[i].pos = glm::vec3(tX, tY, tZ);*/
+							players[i].model = glm::translate(players[i].model,
+															  glm::vec3(x - players[i].pos.x,
+																		0.f,
+																		z - players[i].pos.z));
+							players[i].pos = glm::vec3(x, 0.f, z);
 						}
 					}
 				}break;
 			}
 		}
-		#pragma endregion receiveFromServer
+		#pragma endregion
 
 		// set the player's height to the terrain's height at that spot
 		moveY(terrain1.getHeight(getPos().x, getPos().z) + 5.f);
@@ -278,22 +267,22 @@ int main(){
 
 				// when the player stops moving
 				if(event.key.code == sf::Keyboard::W){
-					sprintf(sendMsg, "s%i,%i", ID, 0);
+					sprintf(sendMsg, "s%i,%i,%f,%f", ID, 0, getPos().x, getPos().z);
 					socket.send(sendMsg, sizeof(sendMsg), server, port);
 					moving[0] = false;
 				}
 				if(event.key.code == sf::Keyboard::A){
-					sprintf(sendMsg, "s%i,%i", ID, 1);
+					sprintf(sendMsg, "s%i,%i,%f,%f", ID, 1, getPos().x, getPos().z);
 					socket.send(sendMsg, sizeof(sendMsg), server, port);
 					moving[1] = false;
 				}
 				if(event.key.code == sf::Keyboard::S){
-					sprintf(sendMsg, "s%i,%i", ID, 2);
+					sprintf(sendMsg, "s%i,%i,%f,%f", ID, 2, getPos().x, getPos().z);
 					socket.send(sendMsg, sizeof(sendMsg), server, port);
 					moving[2] = false;
 				}
 				if(event.key.code == sf::Keyboard::D){
-					sprintf(sendMsg, "s%i,%i", ID, 3);
+					sprintf(sendMsg, "s%i,%i,%f,%f", ID, 3, getPos().x, getPos().z);
 					socket.send(sendMsg, sizeof(sendMsg), server, port);
 					moving[3] = false;
 				}
@@ -310,7 +299,7 @@ int main(){
 
 				// set a restriction on checking the area around the player
 				// so it doesn't check over the entire map every call
-				float range = 25.f;
+				float range = 20.f;
 
 				int x_min = 0, z_min = 0, x_max = 0, z_max = 0;
 
@@ -389,12 +378,13 @@ int main(){
 		for(int i = 0; i < players.size(); i++){
 			if(players[i].id != ID){
 				if(players[i].moving[0]){
-					players[i].pos.x += (players[i].dir.x * deltaTime);
-					players[i].pos.z += (players[i].dir.z * deltaTime);
+					players[i].pos2.x += players[i].dir.x * deltaTime;
+					players[i].pos2.z += players[i].dir.z * deltaTime;
+
 					players[i].model = glm::translate(players[i].model,
-													  glm::vec3(players[i].pos.x,
+													  glm::vec3(players[i].pos2.x,
 																0.f,
-																players[i].pos.z));
+																players[i].pos2.z));
 				}
 
 				cube.draw(players[i].model, VP, lightingShader);
@@ -411,14 +401,9 @@ int main(){
 		GLuint modelLoc  = glGetUniformLocation(lampShader, "M");
 		
 		model = glm::mat4();
-		model = glm::translate(model, glm::vec3(
-			-50.f,
-			 65.f,
-			-50.f)
-		);
-		for(int i = 0; i < lamps.size(); i++){
+		model = glm::translate(model, glm::vec3(-50.f, 65.f, -50.f));
+		for(int i = 0; i < lamps.size(); i++)
 			lamps[i].draw(model, modelLoc, matrixLoc, VP);
-		}
 
 		window.display();
 
@@ -437,5 +422,5 @@ int main(){
 	glDeleteProgram(skyboxShader);
 	glDeleteProgram(lampShader);
 	
-	return EXIT_SUCCESS;
+	return EXIT_SUCCESS; // qed
 }
