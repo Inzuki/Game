@@ -12,7 +12,7 @@ int ID = -1;
 struct Player {
 	int id;
 	char name[1024];
-	glm::vec3 pos, pos2, dir;
+	glm::vec3 pos, dir, right;
 	glm::mat4 model;
 	bool moving[4];
 };
@@ -47,12 +47,7 @@ int main(){
 
 	// load skyboxes
 	std::vector<const GLchar*> faces;
-	faces.push_back("right.jpg");
-	faces.push_back("left.jpg");
-	faces.push_back("top.jpg");
-	faces.push_back("bottom.jpg");
-	faces.push_back("back.jpg");
-	faces.push_back("front.jpg");
+	faces.push_back("right.jpg"); faces.push_back("left.jpg"); faces.push_back("top.jpg"); faces.push_back("bottom.jpg"); faces.push_back("back.jpg"); faces.push_back("front.jpg");
 	CubeMap skybox1(faces);
 
 	// load terrain
@@ -145,9 +140,9 @@ int main(){
 				// when a new player connects
 				case 'a':{
 					sscanf(buff, "%i,%s", &tempPlayer.id, &tempPlayer.name);
-					tempPlayer.pos = glm::vec3(0.f, 0.f, 0.f);
-					tempPlayer.dir = glm::vec3(0.f, 0.f, 0.f);
-					tempPlayer.pos2 = glm::vec3(0.f, 0.f, 0.f);
+					tempPlayer.pos   = glm::vec3(0.f, 0.f, 0.f);
+					tempPlayer.dir   = glm::vec3(0.f, 0.f, 0.f);
+					tempPlayer.right = glm::vec3(0.f, 0.f, 0.f);
 					tempPlayer.model = glm::mat4();
 					tempPlayer.moving[0] = false;
 					tempPlayer.moving[1] = false;
@@ -163,7 +158,7 @@ int main(){
 					printf("- %s\n", tempPlayer.name);
 					tempPlayer.pos = glm::vec3(0.f, 0.f, 0.f);
 					tempPlayer.dir = glm::vec3(0.f, 0.f, 0.f);
-					tempPlayer.pos2 = glm::vec3(0.f, 0.f, 0.f);
+					tempPlayer.right = glm::vec3(0.f, 0.f, 0.f);
 					tempPlayer.model = glm::mat4();
 					tempPlayer.moving[0] = false;
 					tempPlayer.moving[1] = false;
@@ -188,7 +183,10 @@ int main(){
 						if(players[i].id == id){
 							players[i].moving[key] = true;
 
-							players[i].dir = glm::vec3(dirX, 0.f, dirZ);
+							if(key == 0 || key == 2)
+								players[i].dir   = glm::vec3(dirX, 0.f, dirZ);
+							else
+								players[i].right = glm::vec3(dirX, 0.f, dirZ);
 						}
 					}
 				}break;
@@ -221,7 +219,7 @@ int main(){
 		float currentTime     = clk.getElapsedTime().asSeconds(),
 			  deltaTime       = float(currentTime - lastTime);
 		// update window title to display framerate
-		sprintf(fps, "[OpenGL] - FPS: %f", (1.f / deltaTime));
+		sprintf(fps, "[OpenGL] - FPS: %i", (int)round(1.f / deltaTime));
 		window.setTitle(fps);
 
 		// handle keyboard input
@@ -244,7 +242,7 @@ int main(){
 					moving[0] = true;
 				}
 				if(event.key.code == sf::Keyboard::A && !moving[1]){
-					sprintf(sendMsg, "m%i,%i,%f,%f", ID, 1, getDir().x, getDir().z);
+					sprintf(sendMsg, "m%i,%i,%f,%f", ID, 1, getRight().x, getRight().z);
 					socket.send(sendMsg, sizeof(sendMsg), server, port);
 					moving[1] = true;
 				}
@@ -254,7 +252,7 @@ int main(){
 					moving[2] = true;
 				}
 				if(event.key.code == sf::Keyboard::D && !moving[3]){
-					sprintf(sendMsg, "m%i,%i,%f,%f", ID, 3, getDir().x, getDir().z);
+					sprintf(sendMsg, "m%i,%i,%f,%f", ID, 3, getRight().x, getRight().z);
 					socket.send(sendMsg, sizeof(sendMsg), server, port);
 					moving[3] = true;
 				}
@@ -364,6 +362,46 @@ int main(){
 				lamps[i].getLampPos().z
 			);
 		}
+
+		// draw players
+		for(int i = 0; i < players.size(); i++){
+			if(players[i].id != ID){
+				if(players[i].moving[0]){ // forward
+					players[i].model = glm::translate(players[i].model,
+													  glm::vec3(25.f * players[i].dir.x * deltaTime,
+																0.f,
+																25.f * players[i].dir.z * deltaTime));
+					players[i].pos.x += 25.f * players[i].dir.x * deltaTime;
+					players[i].pos.z += 25.f * players[i].dir.z * deltaTime;
+				}
+				if(players[i].moving[1]){ // left
+					players[i].model = glm::translate(players[i].model,
+													  glm::vec3(-(25.f * players[i].right.x * deltaTime),
+																0.f,
+																-(25.f * players[i].right.z * deltaTime)));
+					players[i].pos.x -= 25.f * players[i].right.x * deltaTime;
+					players[i].pos.z -= 25.f * players[i].right.z * deltaTime;
+				}
+				if(players[i].moving[2]){ // back
+					players[i].model = glm::translate(players[i].model,
+													  glm::vec3(-(25.f * players[i].dir.x * deltaTime),
+																0.f,
+																-(25.f * players[i].dir.z * deltaTime)));
+					players[i].pos.x -= 25.f * players[i].dir.x * deltaTime;
+					players[i].pos.z -= 25.f * players[i].dir.z * deltaTime;
+				}
+				if(players[i].moving[3]){ // right
+					players[i].model = glm::translate(players[i].model,
+													  glm::vec3(25.f * players[i].right.x * deltaTime,
+																0.f,
+																25.f * players[i].right.z * deltaTime));
+					players[i].pos.x += 25.f * players[i].right.x * deltaTime;
+					players[i].pos.z += 25.f * players[i].right.z * deltaTime;
+				}
+
+				cube.draw(players[i].model, VP, lightingShader);
+			}
+		}
 		
 		// draw stall
 		glm::mat4 model;
@@ -373,23 +411,6 @@ int main(){
 
 		// draw cube
 		cube.draw(boxModel, VP, lightingShader);
-
-		// draw players
-		for(int i = 0; i < players.size(); i++){
-			if(players[i].id != ID){
-				if(players[i].moving[0]){
-					players[i].pos2.x += players[i].dir.x * deltaTime;
-					players[i].pos2.z += players[i].dir.z * deltaTime;
-
-					players[i].model = glm::translate(players[i].model,
-													  glm::vec3(players[i].pos2.x,
-																0.f,
-																players[i].pos2.z));
-				}
-
-				cube.draw(players[i].model, VP, lightingShader);
-			}
-		}
 		
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);

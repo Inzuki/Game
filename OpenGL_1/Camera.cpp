@@ -19,6 +19,7 @@ glm::mat4 getViewMatrix(){ return view; }
 glm::mat4 getProjectionMatrix(){ return projection; }
 glm::vec3 getPos(){ return position;  }
 glm::vec3 getDir(){ return direction; }
+glm::vec3 getRight(){ return right;   }
 
 void moveY(float y){
 	// the speed at which the player changes height
