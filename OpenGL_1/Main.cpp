@@ -43,7 +43,7 @@ int main(){
 
 	// load models
 	OBJ stall("stall.obj", "stallTexture.png");
-	OBJ cube("cube.obj",  NULL);
+	OBJ cube("cube.obj", nullptr);
 
 	// load skyboxes
 	std::vector<const GLchar*> faces;
@@ -121,14 +121,22 @@ int main(){
 	#pragma endregion
 
 	bool running = true;
-	bool moving[4];
-	moving[0] = false;
-	moving[1] = false;
-	moving[2] = false;
-	moving[3] = false;
+	bool moving[4]; moving[0] = false; moving[1] = false; moving[2] = false; moving[3] = false;
+	glm::vec3 lastDir = getDir();
+	sf::Clock dirChangeClk;
 
-	sf::Clock moveClk;
 	while(running){
+		// send the new direction of the player when they move
+		if(moving[0] || moving[1] || moving[2] || moving[3]){
+			if(lastDir != getDir() && dirChangeClk.getElapsedTime().asSeconds() > 0.25f){
+				sprintf(sendMsg, "d%i,%f,%f,%f,%f,%f,%f", ID, getDir().x, getDir().z, getRight().x, getRight().z, getPos().x, getPos().z);
+				socket.send(sendMsg, sizeof(sendMsg), server, port);
+
+				lastDir = getDir();
+				dirChangeClk.restart();
+			}
+		}
+
 		#pragma region receiveFromServer
 		// receive from the server
 		if(socket.receive(buffer, sizeof(buffer), received, sender, senderPort) == sf::Socket::Done){
@@ -144,10 +152,7 @@ int main(){
 					tempPlayer.dir   = glm::vec3(0.f, 0.f, 0.f);
 					tempPlayer.right = glm::vec3(0.f, 0.f, 0.f);
 					tempPlayer.model = glm::mat4();
-					tempPlayer.moving[0] = false;
-					tempPlayer.moving[1] = false;
-					tempPlayer.moving[2] = false;
-					tempPlayer.moving[3] = false;
+					tempPlayer.moving[0] = false; tempPlayer.moving[1] = false; tempPlayer.moving[2] = false; tempPlayer.moving[3] = false;
 					players.push_back(tempPlayer);
 
 					printf("%s has connected.\n", tempPlayer.name);
@@ -160,10 +165,7 @@ int main(){
 					tempPlayer.dir = glm::vec3(0.f, 0.f, 0.f);
 					tempPlayer.right = glm::vec3(0.f, 0.f, 0.f);
 					tempPlayer.model = glm::mat4();
-					tempPlayer.moving[0] = false;
-					tempPlayer.moving[1] = false;
-					tempPlayer.moving[2] = false;
-					tempPlayer.moving[3] = false;
+					tempPlayer.moving[0] = false; tempPlayer.moving[1] = false; tempPlayer.moving[2] = false; tempPlayer.moving[3] = false;
 					players.push_back(tempPlayer);
 				}break;
 				// when a player disconnects
@@ -198,6 +200,24 @@ int main(){
 					for(int i = 0; i < players.size(); i++){
 						if(players[i].id == id){
 							players[i].moving[key] = false;
+
+							players[i].model = glm::translate(players[i].model,
+															  glm::vec3(x - players[i].pos.x,
+																		0.f,
+																		z - players[i].pos.z));
+							players[i].pos = glm::vec3(x, 0.f, z);
+						}
+					}
+				}break;
+				// when a player changes direction while moving
+				case 'd':{
+					int id; float x, z, dirX, dirZ, rX, rZ;
+					sscanf(buff, "%i,%f,%f,%f,%f,%f,%f", &id, &dirX, &dirZ, &rX, &rZ, &x, &z);
+
+					for(int i = 0; i < players.size(); i++){
+						if(players[i].id == id){
+							players[i].dir   = glm::vec3(dirX, 0.f, dirZ);
+							players[i].right = glm::vec3(rX,   0.f, rZ);
 
 							players[i].model = glm::translate(players[i].model,
 															  glm::vec3(x - players[i].pos.x,
@@ -285,11 +305,13 @@ int main(){
 					moving[3] = false;
 				}
 			}
+
 			// when the window is resized, fix the viewport
 			if(event.type == sf::Event::Resized){
 				glViewport(0, 0, window.getSize().x, window.getSize().y);
 				terrain1.updateRes(window);
 			}
+
 			// mouse picking information
 			if(event.type == sf::Event::MouseButtonPressed){
 				glm::vec3 v1, v2;
@@ -410,6 +432,7 @@ int main(){
 		stall.draw(model, VP, lightingShader);
 
 		// draw cube
+		boxModel = glm::scale(boxModel, glm::vec3(.5f));
 		cube.draw(boxModel, VP, lightingShader);
 		
 		glDisableVertexAttribArray(0);
