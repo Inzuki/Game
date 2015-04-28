@@ -7,6 +7,10 @@
 #include "Terrain.h"
 #include "Texture.h"
 
+#define OGLFT_NO_SOLID
+#define OGLFT_NO_QT
+#include <OGLFT.h>
+
 int ID = -1;
 
 struct Player {
@@ -19,7 +23,7 @@ struct Player {
 
 int main(){
 	// initialize OpenGL window
-	sf::Window window(sf::VideoMode(1600, 1024), "OpenGL", sf::Style::Resize, sf::ContextSettings(64));
+	sf::RenderWindow window(sf::VideoMode(1600, 1024), "OpenGL", sf::Style::Resize, sf::ContextSettings(64));
 	glViewport(0, 0, window.getSize().x, window.getSize().y);
     window.setVerticalSyncEnabled(true);
 	window.setFramerateLimit(60);
@@ -67,8 +71,8 @@ int main(){
     glUniform1f(glGetUniformLocation(lightingShader, "material.shininess"), 32.0f);
 
 	glm::mat4 boxModel;
-	glm::vec3 pos(1.f, 5.f, 1.f);
-	boxModel = glm::translate(boxModel, pos);
+	glm::vec3 boxPos(1.f, 5.f, 1.f);
+	boxModel = glm::translate(boxModel, boxPos);
 
 	#pragma region server
 	// get name
@@ -76,13 +80,19 @@ int main(){
 	char moniker[1024]; sprintf(moniker, "Inzuki");
 	//gets(moniker);
 
+	// get server IP
+	printf("Please enter a server IP: "); printf("127.0.0.1\n");
+	//char someIP[128];
+	//gets(someIP);
+
 	// connect to server
 	const unsigned short port = 50001;
-	//std::string serverIp = "134.129.55.96";
-	std::string serverIp = "127.0.0.1";
-	sf::IpAddress server = serverIp;
+	//std::string serverIP = someIP;          // have the user enter an IP
+	//std::string serverIP = "134.129.55.96"; // my IP
+	std::string serverIP = "127.0.0.1";     // localhost
+	sf::IpAddress server = serverIP;
 
-	printf("Connecting to %s...\n", serverIp.c_str());
+	printf("Connecting to %s...\n", serverIP.c_str());
 	
 	// tell the server the client is attempting to connect
 	char sendMsg[1024];
@@ -106,7 +116,7 @@ int main(){
 
 		ID = atoi(buff);
 
-		printf("Connected to %s successfully (given ID %i).\n", serverIp.c_str(), ID);
+		printf("Connected to %s successfully (given ID %i).\n", serverIP.c_str(), ID);
 	}
 	printf("Other connected players:\n");
 
@@ -120,12 +130,21 @@ int main(){
 	socket.setBlocking(false);
 	#pragma endregion
 
+	// hold chat messages
+	std::vector<std::string> chatMsgs;
+
+	OGLFT::Monochrome* face = new OGLFT::Monochrome("res/fonts/trebuc.ttf", 24);
+
+	// stuff
 	bool running = true;
 	bool moving[4]; moving[0] = false; moving[1] = false; moving[2] = false; moving[3] = false;
 	glm::vec3 lastDir = getDir();
 	sf::Clock dirChangeClk;
 
 	while(running){
+		float sx = 2.f / window.getSize().x,
+			  sy = 2.f / window.getSize().y;
+
 		// send the new direction of the player when they move
 		if(moving[0] || moving[1] || moving[2] || moving[3]){
 			if(lastDir != getDir() && dirChangeClk.getElapsedTime().asSeconds() > 0.25f){
@@ -337,13 +356,13 @@ int main(){
 							// pointing at, rather than translating it by that much
 							boxModel = glm::translate(
 								boxModel, glm::vec3(
-									float(x) - pos.x,
-									terrain1.getHeight(x, z) + 1.f - pos.y,
-									float(z) - pos.z
+									float(x) - boxPos.x,
+									terrain1.getHeight(x, z) + 1.f - boxPos.y,
+									float(z) - boxPos.z
 								)
 							);
 							// set the position to the new position
-							pos = glm::vec3(float(x), terrain1.getHeight(x, z) + 1.f, float(z));
+							boxPos = glm::vec3(float(x), terrain1.getHeight(x, z) + 1.f, float(z));
 
 							break; // quit running the for loop when the spot is found
 						}
@@ -432,7 +451,6 @@ int main(){
 		stall.draw(model, VP, lightingShader);
 
 		// draw cube
-		boxModel = glm::scale(boxModel, glm::vec3(.5f));
 		cube.draw(boxModel, VP, lightingShader);
 		
 		glDisableVertexAttribArray(0);
@@ -449,6 +467,7 @@ int main(){
 		for(int i = 0; i < lamps.size(); i++)
 			lamps[i].draw(model, modelLoc, matrixLoc, VP);
 
+		// display window
 		window.display();
 
 		lastTime = currentTime;
