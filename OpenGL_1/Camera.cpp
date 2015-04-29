@@ -13,13 +13,17 @@ float horizontalAngle = 3.14f,
 	  speed			  = 25.f,
 	  mouseSpeed      = 0.01f;
 
-bool cursorLocked = true;
+bool cursorLocked = true, isTyping = false;
 
 glm::mat4 getViewMatrix(){ return view; }
 glm::mat4 getProjectionMatrix(){ return projection; }
 glm::vec3 getPos(){ return position;  }
 glm::vec3 getDir(){ return direction; }
 glm::vec3 getRight(){ return right;   }
+bool typing(){ return isTyping; }
+void setTyping(bool trigger){
+	isTyping = trigger;
+}
 
 void moveY(float y){
 	// the speed at which the player changes height
@@ -66,21 +70,23 @@ void computeMats(sf::Window &window, sf::Clock clk, float deltaTime){
 		);
 
 		// handle movement
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::W)){
-			position.x += direction.x * speed * deltaTime;
-			position.z += direction.z * speed * deltaTime;
-		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
-			position.x -= direction.x * speed * deltaTime;
-			position.z -= direction.z * speed * deltaTime;
-		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::D)){
-			position.x += right.x * speed * deltaTime;
-			position.z += right.z * speed * deltaTime;
-		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
-			position.x -= right.x * speed * deltaTime;
-			position.z -= right.z * speed * deltaTime;
+		if(!isTyping){
+			if(sf::Keyboard::isKeyPressed(sf::Keyboard::W)){
+				position.x += direction.x * speed * deltaTime;
+				position.z += direction.z * speed * deltaTime;
+			}
+			if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
+				position.x -= direction.x * speed * deltaTime;
+				position.z -= direction.z * speed * deltaTime;
+			}
+			if(sf::Keyboard::isKeyPressed(sf::Keyboard::D)){
+				position.x += right.x * speed * deltaTime;
+				position.z += right.z * speed * deltaTime;
+			}
+			if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
+				position.x -= right.x * speed * deltaTime;
+				position.z -= right.z * speed * deltaTime;
+			}
 		}
 
 		glm::vec3 up = glm::cross(right, direction);

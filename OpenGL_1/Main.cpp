@@ -1,4 +1,4 @@
-#include "INCLUDES.h"
+﻿#include "INCLUDES.h"
 
 #include "OBJ.h"
 #include "Lamp.h"
@@ -6,10 +6,6 @@
 #include "Shader.h"
 #include "Terrain.h"
 #include "Texture.h"
-
-#define OGLFT_NO_SOLID
-#define OGLFT_NO_QT
-#include <OGLFT.h>
 
 int ID = -1;
 
@@ -20,6 +16,53 @@ struct Player {
 	glm::mat4 model;
 	bool moving[4];
 };
+
+void renderText(const std::string &str, FT_Face face, float x, float y, float sx, float sy){
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	const FT_GlyphSlot g = face->glyph;
+
+	for(auto c : str){
+		if(FT_Load_Char(face, c, FT_LOAD_RENDER) != 0)
+			continue;
+
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0,
+			GL_R8,
+			g->bitmap.width,
+			g->bitmap.rows,
+			0,
+			GL_RED,
+			GL_UNSIGNED_BYTE,
+			g->bitmap.buffer
+		);
+
+		const float vx = x + g->bitmap_left  * sx;
+		const float vy = y + g->bitmap_top   * sy;
+		const float w  =     g->bitmap.width * sx;
+		const float h  =     g->bitmap.rows  * sy;
+
+		struct {
+			float x, y, s, t;
+		}data[6] = {
+			{ vx,     vy,     0, 0 },
+			{ vx,     vy - h, 0, 1 },
+			{ vx + w, vy,     1, 0 },
+			{ vx + w, vy,     1, 0 },
+			{ vx,     vy - h, 0, 1 },
+			{ vx + w, vy - h, 1, 1 },
+		};
+
+		glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), data, GL_DYNAMIC_DRAW);
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		x += (g->advance.x >> 6) * sx;
+		y += (g->advance.y >> 6) * sy;
+	}
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+}
 
 int main(){
 	// initialize OpenGL window
@@ -133,13 +176,39 @@ int main(){
 	// hold chat messages
 	std::vector<std::string> chatMsgs;
 
-	OGLFT::Monochrome* face = new OGLFT::Monochrome("res/fonts/trebuc.ttf", 24);
+	FT_Library ft_lib{nullptr};
+	if(FT_Init_FreeType(&ft_lib) != 0)
+		throw std::runtime_error("FreeType init failed.");
+
+	FT_Face face{nullptr};
+	if(FT_New_Face(ft_lib, "res/fonts/trebuc.ttf", 0, &face) != 0)
+		throw std::runtime_error("FreeType init failed.");
 
 	// stuff
 	bool running = true;
 	bool moving[4]; moving[0] = false; moving[1] = false; moving[2] = false; moving[3] = false;
 	glm::vec3 lastDir = getDir();
 	sf::Clock dirChangeClk;
+
+	// text shader n stuff
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	GLuint vbo{0}, vao{0}, texture{0}, sampler{0};
+	glGenBuffers(1, &vbo);
+	glGenVertexArrays(1, &vao);
+	glGenTextures(1, &texture);
+	glGenSamplers(1, &sampler);
+    glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	GLuint textShader     = loadShaders("text.vert",       "text.frag");
+	glUseProgram(textShader); glBindAttribLocation(textShader, 0, "in_Position");
+
+	int chatMin = 0, chatMax = 0;
+	char typingText[1024]; memset(typingText, 0, 1024);
 
 	while(running){
 		float sx = 2.f / window.getSize().x,
@@ -246,6 +315,31 @@ int main(){
 						}
 					}
 				}break;
+				// when a chat message is received
+				case 't':{
+					int id; char text[1024];
+					sscanf(buff, "%i,%s", &id, &text);
+
+					for(int i = 0; i < 1024; i++)
+						if(text[i] == '☺')
+							text[i] = ' ';
+
+					for(int i = 0; i < players.size(); i++){
+						if(players[i].id == id){
+							char message[1024];
+
+							sprintf(message, "%s: %s", players[i].name, text);
+
+							chatMsgs.push_back(message);
+
+							if(chatMsgs.size() >= 10){
+								chatMin++;
+								chatMax++;
+							}else
+								chatMax++;
+						}
+					}
+				}break;
 			}
 		}
 		#pragma endregion
@@ -297,7 +391,30 @@ int main(){
 				}
 			}
 
+			if(event.type == sf::Event::TextEntered){
+				if(typing()){
+					if(event.text.unicode > 31 && event.text.unicode < 128)
+						sprintf(typingText, "%s%c", typingText, static_cast<char>(event.text.unicode));
+				}
+			}
+
 			if(event.type == sf::Event::KeyReleased){
+				// bring up text box to send messages
+				if(event.key.code == sf::Keyboard::Return){
+					if(typing()){
+						for(int i = 0; i < 1024; i++)
+							if(typingText[i] == ' ')
+								typingText[i] = '☺';
+
+						sprintf(sendMsg, "t%i,%s", ID, typingText);
+						// sprintf(sendMsg, "=HELLO HI STUFF");
+						socket.send(sendMsg, sizeof(sendMsg), server, port);
+						memset(typingText, 0, 1024);
+						setTyping(false);
+					}else
+						setTyping(true);
+				}
+
 				// lock/unlock the cursor
 				if(event.key.code == sf::Keyboard::Q)
 					setCursorLocked();
@@ -467,6 +584,46 @@ int main(){
 		for(int i = 0; i < lamps.size(); i++)
 			lamps[i].draw(model, modelLoc, matrixLoc, VP);
 
+		// text
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glBindSampler(0, sampler);
+		glBindVertexArray(vao);
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+		glUseProgram(textShader);
+		glUniform4f(glGetUniformLocation(textShader, "color"), 1.f, 1.f, 1.f, 0.7f);
+		glUniform1i(glGetUniformLocation(textShader, "tex"),   0);
+		FT_Set_Pixel_Sizes(face, 0, 18);
+
+		// display chat messages
+		for(int i = chatMin; i < chatMax; i++){
+			int scroller = 0;
+			if(chatMax >= 10)
+				scroller = (chatMax - 9);
+
+			renderText(
+				chatMsgs.at(i),
+				face,
+				-0.975f,
+				-0.455f - ((i - scroller) * 0.05f),
+				2.f / window.getSize().x,
+				2.f / window.getSize().y
+			);
+		}
+
+		if(typing()){
+			renderText(
+				typingText,
+				face,
+				-0.970f,
+				-0.9f,
+				2.f / window.getSize().x,
+				2.f / window.getSize().y
+			);
+		}
+
 		// display window
 		window.display();
 
@@ -477,6 +634,10 @@ int main(){
 	terrain1.deleteTerrain();
 	// free models
 	stall.deleteObj();
+	glDeleteBuffers(1, &vbo);
+	glDeleteVertexArrays(1, &vao);
+	glDeleteTextures(1, &texture);
+	glDeleteSamplers(1, &sampler);
 	// free lamps
 	for(int i = 0; i < lamps.size(); i++)
 		lamps[i].deleteLamp();
@@ -484,6 +645,7 @@ int main(){
 	glDeleteProgram(lightingShader);
 	glDeleteProgram(skyboxShader);
 	glDeleteProgram(lampShader);
+	glDeleteProgram(textShader);
 	
 	return EXIT_SUCCESS; // qed
 }

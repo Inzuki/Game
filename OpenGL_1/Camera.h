@@ -6,6 +6,7 @@
 
 glm::mat4 getViewMatrix(), getProjectionMatrix();
 glm::vec3 getPos(), getDir(), getRight();
+bool typing(); void setTyping(bool);
 void moveY(float);
 void computeMats(sf::Window&, sf::Clock, float);
 void setCursorLocked();
