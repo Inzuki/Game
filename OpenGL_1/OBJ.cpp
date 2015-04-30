@@ -14,12 +14,12 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 	std::vector<unsigned int> vertIndices, texIndices, normIndices;
 
 	// open OBJ file and begin reading the OBJ's contents
-	char objFile[128];
+	char objFile[256];
 	sprintf(objFile, "res/models/%s", objName);
 	FILE *file = fopen(objFile, "r");
 
 	while(true){
-		char lineHeader[128];
+		char lineHeader[256];
 
 		int res = fscanf(file, "%s", lineHeader);
 		if(res == EOF)
@@ -63,9 +63,9 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 			vertIndices.push_back(vertexIndex[0]);
 			vertIndices.push_back(vertexIndex[1]);
 			vertIndices.push_back(vertexIndex[2]);
-			 texIndices.push_back(textureIndex[0]);
-			 texIndices.push_back(textureIndex[1]);
-			 texIndices.push_back(textureIndex[2]);
+			texIndices.push_back(textureIndex[0]);
+			texIndices.push_back(textureIndex[1]);
+			texIndices.push_back(textureIndex[2]);
 			normIndices.push_back(normalIndex[0]);
 			normIndices.push_back(normalIndex[1]);
 			normIndices.push_back(normalIndex[2]);
@@ -76,8 +76,8 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 	
 	for(unsigned int i = 0; i < vertIndices.size(); i++){
 		vertices.push_back(tempVertices[vertIndices[i] - 1]);
-		 textures.push_back(tempTextures[texIndices[i] - 1]);
-		  normals.push_back(tempNormals[normIndices[i] - 1]);
+		textures.push_back( tempTextures[texIndices[i] - 1]);
+		 normals.push_back( tempNormals[normIndices[i] - 1]);
 	}
 
 	vertexCount = vertices.size();

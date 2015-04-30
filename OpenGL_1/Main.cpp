@@ -89,6 +89,7 @@ int main(){
 	lamps.push_back(Lamp(glm::vec3(1.2f, 1.0f, 2.0f)));
 
 	// load models
+	OBJ player_mdl("player.obj", "player.png");
 	OBJ stall("stall.obj", "stallTexture.png");
 	OBJ cube("cube.obj", nullptr);
 
@@ -510,7 +511,6 @@ int main(){
 
 		// setup light properties
 		glUseProgram(lightingShader);
-		
 		for(int i = 0; i < lamps.size(); i++){
 			char strang[128];
 			sprintf(strang, "light[%i].position", i);
@@ -567,17 +567,18 @@ int main(){
 		model = glm::translate(model, glm::vec3(25.f, 0.f, 25.f));
 		stall.draw(model, VP, lightingShader);
 
+		// draw player model
+		model = glm::mat4();
+		model = glm::translate(model, glm::vec3(30.f, 0.f, 25.f));
+		model = glm::rotate(model, clk.getElapsedTime().asSeconds() / 2.f, glm::vec3(0.f, 1.f, 0.f));
+		player_mdl.draw(model, VP, lightingShader);
+
 		// draw cube
 		cube.draw(boxModel, VP, lightingShader);
-		
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(2);
 
 		// draw lamps
 		glUseProgram(lampShader);
-		GLuint matrixLoc = glGetUniformLocation(lampShader, "VP");
-		GLuint modelLoc  = glGetUniformLocation(lampShader, "M");
+		GLuint matrixLoc = glGetUniformLocation(lampShader, "VP"), modelLoc  = glGetUniformLocation(lampShader, "M");
 		
 		model = glm::mat4();
 		model = glm::translate(model, glm::vec3(-50.f, 65.f, -50.f));
@@ -623,6 +624,10 @@ int main(){
 				2.f / window.getSize().y
 			);
 		}
+		
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(2);
 
 		// display window
 		window.display();

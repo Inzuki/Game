@@ -99,7 +99,7 @@ void computeMats(sf::Window &window, sf::Clock clk, float deltaTime){
 	}else
 		window.setMouseCursorVisible(true);
 
-	projection = glm::perspective(initFOV, 4.f / 3.f, .1f, 225.f);
+	projection = glm::perspective(initFOV, 4.f / 3.f, .1f, 200.f);
 }
 
 bool coll(glm::vec3 pos, float r, glm::vec3 vA, glm::vec3 vB){
