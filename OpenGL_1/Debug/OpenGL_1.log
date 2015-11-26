@@ -1,38 +1,24 @@
-﻿Build started 4/29/2015 10:33:46 PM.
-     1>Project "C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\OpenGL_1\OpenGL_1.vcxproj" on node 2 (Build target(s)).
+﻿Build started 11/26/2015 5:06:55 PM.
+     1>Project "C:\Users\Inzuki\documents\visual studio 2013\Projects\OpenGL_1\OpenGL_1\OpenGL_1.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\freetype-2.5.5\include" /I"C:\Users\Inzuki\Downloads\assimp-3.1.1\assimp-3.1.1\include" /IC:\GLM\glm /I"C:\GLEW\glew-1.12.0\include" /I"C:\SFML 2.2 x32\include" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Main.cpp
          Main.cpp
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(107): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(264): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(273): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(289): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(306): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(325): warning C4566: character represented by universal-character-name '\u263A' cannot be represented in the current code page (1252)
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(328): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(408): warning C4566: character represented by universal-character-name '\u263A' cannot be represented in the current code page (1252)
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(463): warning C4244: '=' : conversion from 'float' to 'int', possible loss of data
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(464): warning C4244: '=' : conversion from 'float' to 'int', possible loss of data
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(466): warning C4244: '=' : conversion from 'float' to 'int', possible loss of data
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(467): warning C4244: '=' : conversion from 'float' to 'int', possible loss of data
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(472): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(478): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(483): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(514): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(525): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(585): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\inzuki\documents\visual studio 2013\projects\opengl_1\opengl_1\main.cpp(647): warning C4018: '<' : signed/unsigned mismatch
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\Debug\OpenGL_1.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\freetype-2.5.5\objs\vc2010\Win32" /LIBPATH:"C:\ASSIMP-build\code\Debug" /LIBPATH:"C:\GLEW\glew-1.12.0\lib\Release\Win32" /LIBPATH:"C:\SFML 2.2 x32\lib" "sfml-graphics-d.lib" "sfml-audio-d.lib" "sfml-window-d.lib" "sfml-system-d.lib" "sfml-network-d.lib" opengl32.lib glu32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib glew32.lib glew32s.lib assimpd.lib freetype255d.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\Debug\OpenGL_1.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\Debug\OpenGL_1.lib" /MACHINE:X86 Debug\Camera.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Inzuki\documents\visual studio 2013\Projects\OpenGL_1\Debug\OpenGL_1.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\freetype-2.5.5\objs\vc2010\Win32" /LIBPATH:"C:\ASSIMP-build\code\Debug" /LIBPATH:"C:\GLEW\glew-1.12.0\lib\Release\Win32" /LIBPATH:"C:\SFML 2.2 x32\lib" "sfml-graphics-d.lib" "sfml-audio-d.lib" "sfml-window-d.lib" "sfml-system-d.lib" "sfml-network-d.lib" opengl32.lib glu32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib glew32.lib glew32s.lib assimpd.lib freetype255d.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Inzuki\documents\visual studio 2013\Projects\OpenGL_1\Debug\OpenGL_1.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Inzuki\documents\visual studio 2013\Projects\OpenGL_1\Debug\OpenGL_1.lib" /MACHINE:X86 Debug\Assimp.obj
+         Debug\Camera.obj
+         Debug\GUI.obj
+         Debug\INCLUDES.obj
          Debug\Lamp.obj
          Debug\Main.obj
          Debug\OBJ.obj
+         Debug\OLD_MAIN.obj
          Debug\Shader.obj
          Debug\Terrain.obj
          Debug\Texture.obj
-         OpenGL_1.vcxproj -> C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\Debug\OpenGL_1.exe
-     1>Done Building Project "C:\Users\Inzuki\Documents\Visual Studio 2013\Projects\OpenGL_1\OpenGL_1\OpenGL_1.vcxproj" (Build target(s)).
+         Debug\Water.obj
+         OpenGL_1.vcxproj -> C:\Users\Inzuki\documents\visual studio 2013\Projects\OpenGL_1\Debug\OpenGL_1.exe
+     1>Done Building Project "C:\Users\Inzuki\documents\visual studio 2013\Projects\OpenGL_1\OpenGL_1\OpenGL_1.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:02.19
+Time Elapsed 00:00:01.55

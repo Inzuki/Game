@@ -9,11 +9,13 @@ out vec3 outFragPos;
 out vec2 outTexCoords;
 
 uniform mat4 VP;
-uniform mat4 M;
+uniform mat4 model;
+uniform vec4 plane;
 
 void main(){
-	gl_Position  = VP * M * vec4(pos, 1.0f);
-	outFragPos   = vec3(M * vec4(pos, 1.0f));
-	outNormal    = mat3(transpose(inverse(M))) * normal;
+	gl_ClipDistance[0] = dot(model * vec4(pos, 1.0), plane);
+	gl_Position  = VP * model * vec4(pos, 1.0f);
+	outFragPos   = vec3(model * vec4(pos, 1.0f));
+	outNormal    = mat3(transpose(inverse(model))) * normal;
 	outTexCoords = texCoords;
 }

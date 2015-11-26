@@ -1,10 +1,10 @@
 #include "Texture.h"
 
-GLuint loadTexture(const char * file){
+GLuint loadTexture(const char *file){
 	sf::Image img;
 
 	char texFile[128];
-	sprintf(texFile, "res/textures/%s", file);
+	sprintf(texFile, "%s", file);
 
 	img.loadFromFile(texFile);
 
@@ -14,10 +14,8 @@ GLuint loadTexture(const char * file){
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // repeat texture
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // repeat texture
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, texture);
 
 	glTexImage2D(
 		GL_TEXTURE_2D,
@@ -105,7 +103,7 @@ CubeMap::CubeMap(std::vector<const GLchar*> faces){
 			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
 			0,
 			GL_RGBA,
-			img.getSize().x ,
+			img.getSize().x,
 			img.getSize().y,
 			0,
 			GL_RGBA,

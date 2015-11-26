@@ -70,13 +70,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Assimp.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="GUI.cpp" />
+    <ClCompile Include="INCLUDES.cpp" />
     <ClCompile Include="Lamp.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="OBJ.cpp" />
+    <ClCompile Include="OLD_MAIN.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="Water.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="fragment.txt" />
@@ -85,13 +90,16 @@
     <Text Include="vertex_lamp.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Assimp.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="GUI.h" />
     <ClInclude Include="INCLUDES.h" />
     <ClInclude Include="Lamp.h" />
     <ClInclude Include="OBJ.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="Water.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -17,6 +17,4 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-// FreeType library
-#include <ft2build.h>
-#include FT_FREETYPE_H
+extern glm::vec3 position;

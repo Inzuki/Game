@@ -8,10 +8,10 @@ float Terrain::avgPixel(sf::Color c){
 
 Terrain::Terrain(const char *file, const char *texFilePath, sf::Window &window){
 	texture = loadTexture(texFilePath);
-	texture2 = loadTexture("sand.jpg");
-	texture3 = loadTexture("rock.jpg");
-	texture4 = loadTexture("path.png");
-	texture5 = loadTexture("brick.png");
+	texture2 = loadTexture("res/textures/sand.jpg");
+	texture3 = loadTexture("res/textures/rock.jpg");
+	texture4 = loadTexture("res/textures/path.png");
+	texture5 = loadTexture("res/textures/brick.png");
 
 	shader = loadShaders("terrain.vert", "terrain.frag");
 	glUseProgram(shader);
@@ -142,15 +142,14 @@ Terrain::Terrain(const char *file, const char *texFilePath, sf::Window &window){
 	glBindVertexArray(0);
 }
 
-void Terrain::draw(glm::mat4 &VP, std::vector<Lamp>&lamps){
+void Terrain::draw(glm::mat4 &VP, Lamp &lamp, glm::vec4 &clipPlane){
 	glUseProgram(shader);
 
-	for(int i = 0; i < lamps.size(); i++)
-		glUniform3f(glGetUniformLocation(shader, "light.position"),
-					lamps[i].getLampPos().x,
-					lamps[i].getLampPos().y,
-					lamps[i].getLampPos().z
-		);
+	glUniform3f(glGetUniformLocation(shader, "light.position"),
+				lamp.getLampPos().x,
+				lamp.getLampPos().y,
+				lamp.getLampPos().z
+	);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -169,15 +168,16 @@ void Terrain::draw(glm::mat4 &VP, std::vector<Lamp>&lamps){
 
 	glm::mat4 model;
 	glBindVertexArray(vao);
+		glUniform4fv(glGetUniformLocation(shader, "plane"), 1, glm::value_ptr(clipPlane));
 		glUniform3f(glGetUniformLocation(shader, "viewPos"), getPos().x, getPos().y, getPos().z);
 		glUniformMatrix4fv(glGetUniformLocation(shader, "VP"), 1, GL_FALSE, glm::value_ptr(VP));
-		glUniformMatrix4fv(glGetUniformLocation(shader, "M"),  1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(glGetUniformLocation(shader, "model"),  1, GL_FALSE, glm::value_ptr(model));
 		glDrawArrays(GL_TRIANGLES, 0, rnum * 3);
 	glBindVertexArray(0);
 }
 
 float Terrain::getHeight(float x, float z){
-	float y = NULL;
+	float y = 0.f;
 	
 	y = heights[(int)z][(int)x];
 
@@ -189,7 +189,12 @@ void Terrain::updateRes(sf::Window &window){
 	glUniform2f(glGetUniformLocation(shader, "resolution"), window.getSize().x, window.getSize().y);
 }
 
-void Terrain::deleteTerrain(){
+void Terrain::updateRes(int x, int y){
+	glUseProgram(shader);
+	glUniform2f(glGetUniformLocation(shader, "resolution"), x, y);
+}
+
+Terrain::~Terrain(){
 	glDeleteTextures(1, &texture);
 	glDeleteTextures(1, &texture2);
 	glDeleteTextures(1, &texture3);

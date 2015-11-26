@@ -6,9 +6,13 @@
 class Lamp {
 	public:
 		Lamp(glm::vec3);
-		void draw(glm::mat4&, GLuint, GLuint, glm::mat4&), deleteLamp();
+		~Lamp();
+
+		void draw(glm::mat4&, GLuint, GLuint, glm::mat4&);
 		glm::vec3 getLampPos();
 		int getVerts();
+		void moveLamp(glm::vec3);
+
 	private:
 		int vertexCount;
 		GLuint lamp, vertBuff;

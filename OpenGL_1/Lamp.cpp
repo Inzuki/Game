@@ -77,7 +77,11 @@ void Lamp::draw(glm::mat4 &inModel, GLuint modelLoc, GLuint matrixLoc, glm::mat4
 	glBindVertexArray(0);
 }
 
-void Lamp::deleteLamp(){
+void Lamp::moveLamp(glm::vec3 translation){
+	model = glm::translate(model, translation);
+}
+
+Lamp::~Lamp(){
 	glDeleteBuffers(1,  &vertBuff);
 	glDeleteVertexArrays(1, &lamp);
 }

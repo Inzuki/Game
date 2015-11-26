@@ -107,19 +107,22 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 	glBindVertexArray(0);
 }
 
-void OBJ::draw(glm::mat4 &model, glm::mat4 &VP, GLuint &shader){
+void OBJ::draw(glm::mat4 &model, glm::mat4 &viewMat, glm::mat4 &projMat, GLuint &shader, glm::vec4 &clipPlane){
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
+	glUniform1i(glGetUniformLocation(shader, "material.diffuse"), 0);
 
 	glBindVertexArray(obj);
+		glUniform4fv(glGetUniformLocation(shader, "plane"), 1, glm::value_ptr(clipPlane));
 		glUniform3f(glGetUniformLocation(shader, "viewPos"), getPos().x, getPos().y, getPos().z);
-		glUniformMatrix4fv(glGetUniformLocation(shader, "VP"), 1, GL_FALSE, glm::value_ptr(VP));
-		glUniformMatrix4fv(glGetUniformLocation(shader, "M"),  1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(glGetUniformLocation(shader, "model"),   1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(glGetUniformLocation(shader, "viewMat"), 1, GL_FALSE, glm::value_ptr(viewMat));
+		glUniformMatrix4fv(glGetUniformLocation(shader, "projMat"), 1, GL_FALSE, glm::value_ptr(projMat));
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 	glBindVertexArray(0);
 }
 
-void OBJ::deleteObj(){
+OBJ::~OBJ(){
 	glDeleteBuffers(1, &vertBuff);
 	glDeleteBuffers(1,  &texBuff);
 	glDeleteBuffers(1, &normBuff);

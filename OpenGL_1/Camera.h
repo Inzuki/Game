@@ -9,6 +9,7 @@ glm::vec3 getPos(), getDir(), getRight();
 bool typing(); void setTyping(bool);
 void moveY(float);
 void computeMats(sf::Window&, sf::Clock, float);
+void computeMats_reflection(sf::Window&, sf::Clock, float);
 void setCursorLocked();
 
 bool coll(glm::vec3, float, glm::vec3, glm::vec3);
