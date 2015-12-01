@@ -51,6 +51,9 @@
     <ClCompile Include="INCLUDES.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="OLD_MAIN-2.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="vertex.txt">

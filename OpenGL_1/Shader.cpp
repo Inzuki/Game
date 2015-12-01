@@ -10,8 +10,12 @@ GLuint loadShaders(const char *vertexFile, const char *fragmentFile){
 	sprintf(fragFile, "res/shaders/%s", fragmentFile);
 
 	std::ifstream vertexShaderFile(vertFile);
+	if(!vertexShaderFile.good())
+		printf("%s not found\n", vertexFile);
 	std::string   vertexShader;
 	std::ifstream fragmentShaderFile(fragFile);
+	if(!vertexShaderFile.good())
+		printf("%s not found\n", fragmentFile);
 	std::string   fragmentShader;
 
 	// input data from the shader files to memory

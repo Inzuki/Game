@@ -1,6 +1,8 @@
 #include "Lamp.h"
 
-Lamp::Lamp(glm::vec3 inPos){
+Lamp::Lamp(glm::vec3 inPos, glm::vec3 color){
+	this->color = color;
+
 	std::vector<glm::vec3>    tempVertices;
 	std::vector<glm::vec3>    vertices;
 	std::vector<unsigned int> vertIndices;
@@ -67,12 +69,13 @@ Lamp::Lamp(glm::vec3 inPos){
 	model = glm::scale(model, glm::vec3(0.1f));
 }
 
-void Lamp::draw(glm::mat4 &inModel, GLuint modelLoc, GLuint matrixLoc, glm::mat4 &VP){
+void Lamp::draw(glm::mat4 &inModel, GLuint &shader, glm::mat4 &VP){
 	model = inModel;
 	
 	glBindVertexArray(lamp);
-		glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(VP));
-		glUniformMatrix4fv(modelLoc,  1, GL_FALSE, glm::value_ptr(inModel));
+		glUniform3f(glGetUniformLocation(shader, "inColor"), color.x, color.y, color.z);
+		glUniformMatrix4fv(glGetUniformLocation(shader, "VP"), 1, GL_FALSE, glm::value_ptr(VP));
+		glUniformMatrix4fv(glGetUniformLocation(shader, "M"),  1, GL_FALSE, glm::value_ptr(inModel));
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 	glBindVertexArray(0);
 }
@@ -89,3 +92,5 @@ Lamp::~Lamp(){
 int Lamp::getVerts(){ return vertexCount; }
 
 glm::vec3 Lamp::getLampPos(){ return glm::vec3(model[3]); }
+
+glm::vec3 Lamp::getColor(){ return color; }

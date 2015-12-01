@@ -77,6 +77,7 @@
     <ClCompile Include="Lamp.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="OBJ.cpp" />
+    <ClCompile Include="OLD_MAIN-2.cpp" />
     <ClCompile Include="OLD_MAIN.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Terrain.cpp" />

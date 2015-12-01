@@ -11,7 +11,7 @@
 #include "Texture.h"
 
 #define WATER_HEIGHT 25.0
-#define FREE_CAM 0
+#define FREE_CAM 1
 
 int main(){
 	// initialize SFML-OpenGL window
@@ -34,43 +34,37 @@ int main(){
 		glewExperimental = true; glewInit();
 		glEnable(GL_MULTISAMPLE);  
 		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_CULL_FACE);
+		//glEnable(GL_CULL_FACE);
+		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
 	// load shaders
-		GLuint lampShader     = loadShaders("vertex_lamp.txt", "fragment_lamp.txt");
-		GLuint lightingShader = loadShaders("vertex.txt",      "fragment.txt");
-		GLuint skyboxShader   = loadShaders("skybox.vert",     "skybox.frag");
-		GLuint waterShader    = loadShaders("water.vert",      "water.frag");
+		GLuint lampShader     = loadShaders("lamp.vert",    "lamp.frag");
+		GLuint lightingShader = loadShaders("default.vert", "default.frag");
+		GLuint skyboxShader   = loadShaders("skybox.vert",  "skybox.frag");
+		GLuint waterShader    = loadShaders("water.vert",   "water.frag");
+		GLuint terrainShader  = loadShaders("terrain.vert", "terrain.frag");
 
 	// initialize lamps
-		Lamp lamp1(glm::vec3(20.f, 75.f, 20.f));
+		Lamp lamp1(glm::vec3(20.f, 75.f, 20.f), glm::vec3(1.f, 1.f, 1.f));
 
 	// load terrain
-		Terrain terrain1("height.jpg", "res/textures/sandgrass.jpg", window);
+		Terrain terrain1("height.jpg", window, terrainShader);
+		SimpleTerrain sTerrain1(64, 64, "res/textures/sandgrass.jpg");
 
 	// load models
 		OBJ stall("stall.obj", "res/textures/stallTexture.png");
 
 	// load skyboxes
 		#pragma region skybox
-		// order of skyboxes (from top to bottom):
-		// right, left, top, bottom, back, front
-		std::vector<const GLchar*> faces, faces2;
-		faces.push_back("redday_right.jpg");
-		faces.push_back("redday_left.jpg");
-		faces.push_back("redday_top.jpg");
-		faces.push_back("redday_top.jpg");
-		faces.push_back("redday_front.jpg");
-		faces.push_back("redday_back.jpg");
-		CubeMap skybox1(faces);
-
-		faces2.push_back("right.jpg");
-		faces2.push_back("left.jpg");
-		faces2.push_back("top.jpg");
-		faces2.push_back("bottom.jpg");
-		faces2.push_back("back.jpg");
-		faces2.push_back("front.jpg");
-		CubeMap skybox2(faces2);
+		// order of skyboxes (from top to bottom): right, left, top, bottom, back, front
+			std::vector<const GLchar*> faces;
+			faces.push_back("redday_right.jpg");
+			faces.push_back("redday_left.jpg");
+			faces.push_back("redday_top.jpg");
+			faces.push_back("redday_top.jpg");
+			faces.push_back("redday_front.jpg");
+			faces.push_back("redday_back.jpg");
+			CubeMap skybox1(faces);
 		#pragma endregion
 
 	// load anims
@@ -83,8 +77,8 @@ int main(){
 		Water fbos(window.getSize().x, window.getSize().y);
 
 	// load GUI
-		//std::vector<GUI> guis;
-		//GUIRenderer guiRender;
+		std::vector<GUI> guis;
+		GUIRenderer guiRender;
 
 	// light properties
 		glUniform1i(glGetUniformLocation(lightingShader, "material.diffuse"),  0);
@@ -111,7 +105,7 @@ int main(){
 			// when the window is resized, fix the viewport
 			if(event.type == sf::Event::Resized){
 				glViewport(0, 0, window.getSize().x, window.getSize().y);
-				terrain1.updateRes(window);
+				terrain1.updateRes(window, terrainShader);
 			}
 
 			if(event.type == sf::Event::KeyReleased)
@@ -121,7 +115,6 @@ int main(){
 
 		glm::mat4 model, VP;
 		glm::vec4 clipPlane;
-		GLuint matrixLoc, modelLoc;
 
 		glEnable(GL_CLIP_DISTANCE0);
 
@@ -137,7 +130,7 @@ int main(){
 
 			// universal object properties (like size)
 			VP = getProjectionMatrix() * getViewMatrix();
-			clipPlane = glm::vec4(0.f, 1.f, 0.f, -WATER_HEIGHT + 1.f);
+			clipPlane = glm::vec4(0.f, 1.f, 0.f, -WATER_HEIGHT + 0.5f);
 
 			// skybox
 			glDepthMask(GL_FALSE);
@@ -147,8 +140,9 @@ int main(){
 			glDepthMask(GL_TRUE);
 		
 			// draw terrain
-			terrain1.updateRes(REFLECTION_WIDTH, REFLECTION_HEIGHT);
-			terrain1.draw(VP, lamp1, clipPlane);
+			glUseProgram(terrainShader);
+			terrain1.updateRes(REFLECTION_WIDTH, REFLECTION_HEIGHT, terrainShader);
+			terrain1.draw(getProjectionMatrix(), getViewMatrix(), lamp1, terrainShader, clipPlane);
 
 			// setup light properties
 			glUseProgram(lightingShader);
@@ -158,28 +152,32 @@ int main(){
 				lamp1.getLampPos().y,
 				lamp1.getLampPos().z
 			);
-
+			glUniform3f(glGetUniformLocation(
+				lightingShader, "lightColor"),
+				lamp1.getColor().x,
+				lamp1.getColor().y,
+				lamp1.getColor().z
+			);
+			
 			// draw stall
 			model = glm::mat4();
 			model = glm::translate(model, glm::vec3(5.f, 38.f, 5.f));
+			model = glm::rotate(model, -2.5f, glm::vec3(0.f, 1.f, 0.f));
 			stall.draw(model, getProjectionMatrix(), getViewMatrix(), lightingShader, clipPlane);
 
 			// draw guard
 			model = glm::mat4();
 			model = glm::translate(model, glm::vec3(12.f, 38.f, 5.f));
 			model = glm::rotate(model, 4.725f, glm::vec3(1.f, 0.f, 0.f));
-			model = glm::rotate(model, 3.5f, glm::vec3(0.f, 0.f, 1.f));
 			model = glm::scale(model, glm::vec3(.1f, .1f, .1f));
 			mdl.tick(clk.getElapsedTime().asSeconds() / 2.f);
 			mdl.render(deltaTime, model, getProjectionMatrix(), getViewMatrix(), clipPlane);
 
 			// draw lamps
 			glUseProgram(lampShader);
-			matrixLoc = glGetUniformLocation(lampShader, "VP");
-			modelLoc  = glGetUniformLocation(lampShader, "M");
 			model = glm::mat4();
 			model = glm::translate(model, lamp1.getLampPos());
-			lamp1.draw(model, modelLoc, matrixLoc, VP);
+			lamp1.draw(model, lampShader, VP);
 
 			//fbos.unbindCurrentFrameBuffer(window.getSize().x, window.getSize().y);
 		#pragma endregion
@@ -196,7 +194,7 @@ int main(){
 
 			// universal object properties (like size)
 			VP = getProjectionMatrix() * getViewMatrix();
-			clipPlane = glm::vec4(0.f, -1.f, 0.f, WATER_HEIGHT + 1.f);
+			clipPlane = glm::vec4(0.f, -1.f, 0.f, WATER_HEIGHT + 0.5f);
 
 			// skybox
 			glDepthMask(GL_FALSE);
@@ -206,31 +204,30 @@ int main(){
 			glDepthMask(GL_TRUE);
 		
 			// draw terrain
-			terrain1.updateRes(REFRACTION_WIDTH, REFRACTION_HEIGHT);
-			terrain1.draw(VP, lamp1, clipPlane);
+			glUseProgram(terrainShader);
+			terrain1.updateRes(REFRACTION_WIDTH, REFRACTION_HEIGHT, terrainShader);
+			terrain1.draw(getProjectionMatrix(), getViewMatrix(), lamp1, terrainShader, clipPlane);
 
 			glUseProgram(lightingShader);
 			// draw stall
 			model = glm::mat4();
 			model = glm::translate(model, glm::vec3(5.f, 38.f, 5.f));
+			model = glm::rotate(model, -2.5f, glm::vec3(0.f, 1.f, 0.f));
 			stall.draw(model, getProjectionMatrix(), getViewMatrix(), lightingShader, clipPlane);
 
 			// draw guard
 			model = glm::mat4();
 			model = glm::translate(model, glm::vec3(12.f, 38.f, 5.f));
 			model = glm::rotate(model, 4.725f, glm::vec3(1.f, 0.f, 0.f));
-			model = glm::rotate(model, 3.5f, glm::vec3(0.f, 0.f, 1.f));
 			model = glm::scale(model, glm::vec3(.1f, .1f, .1f));
 			mdl.tick(clk.getElapsedTime().asSeconds() / 2.f);
 			mdl.render(deltaTime, model, getProjectionMatrix(), getViewMatrix(), clipPlane);
 
 			// draw lamps
 			glUseProgram(lampShader);
-			matrixLoc = glGetUniformLocation(lampShader, "VP");
-			modelLoc  = glGetUniformLocation(lampShader, "M");
 			model = glm::mat4();
 			model = glm::translate(model, lamp1.getLampPos());
-			lamp1.draw(model, modelLoc, matrixLoc, VP);
+			lamp1.draw(model, lampShader, VP);
 
 			fbos.unbindCurrentFrameBuffer(window.getSize().x, window.getSize().y);
 		#pragma endregion
@@ -253,42 +250,42 @@ int main(){
 			glDepthMask(GL_TRUE);
 		
 			// draw terrain
-			terrain1.updateRes(window);
-			terrain1.draw(VP, lamp1, clipPlane);
+			glUseProgram(terrainShader);
+			sTerrain1.draw(getProjectionMatrix(), getViewMatrix(), lamp1, terrainShader, clipPlane);
+			//terrain1.updateRes(window, terrainShader);
+			//terrain1.draw(getProjectionMatrix(), getViewMatrix(), lamp1, terrainShader, clipPlane);
 
 			glUseProgram(lightingShader);
 			// draw stall
 			model = glm::mat4();
 			model = glm::translate(model, glm::vec3(5.f, 38.f, 5.f));
+			model = glm::rotate(model, -2.5f, glm::vec3(0.f, 1.f, 0.f));
 			stall.draw(model, getProjectionMatrix(), getViewMatrix(), lightingShader, clipPlane);
 
 			// draw guard
 			model = glm::mat4();
 			model = glm::translate(model, glm::vec3(12.f, 38.f, 5.f));
 			model = glm::rotate(model, 4.725f, glm::vec3(1.f, 0.f, 0.f));
-			model = glm::rotate(model, 3.5f, glm::vec3(0.f, 0.f, 1.f));
 			model = glm::scale(model, glm::vec3(.1f, .1f, .1f));
 			mdl.tick(clk.getElapsedTime().asSeconds() / 2.f);
 			mdl.render(deltaTime, model, getProjectionMatrix(), getViewMatrix(), clipPlane);
 
+			// draw lamps
+			glUseProgram(lampShader);
+			model = glm::mat4();
+			//lamp1.moveLamp(glm::vec3(clk.getElapsedTime().asSeconds() / -20.f,
+			//						 0.f,
+			//						 clk.getElapsedTime().asSeconds() / -20.f)
+			//);
+			model = glm::translate(model, lamp1.getLampPos());
+			lamp1.draw(model, lampShader, VP);
+
 			// draw water quad
-			glUseProgram(waterShader);
+			/*glUseProgram(waterShader);
 			model = glm::mat4();
 			model = glm::translate(model, glm::vec3(100.f, 25.f, 100.f));
 			model = glm::scale(model, glm::vec3(fbos.getScale(), fbos.getScale(), fbos.getScale()));
-			fbos.render(waterShader, model, VP, clk, lamp1);
-
-			// draw lamps
-			glUseProgram(lampShader);
-			matrixLoc = glGetUniformLocation(lampShader, "VP");
-			modelLoc  = glGetUniformLocation(lampShader, "M");
-			model = glm::mat4();
-			/*lamp1.moveLamp(glm::vec3(clk.getElapsedTime().asSeconds() / -20.f,
-									 0.f,
-									 clk.getElapsedTime().asSeconds() / -20.f)
-			);*/
-			model = glm::translate(model, lamp1.getLampPos());
-			lamp1.draw(model, modelLoc, matrixLoc, VP);
+			fbos.render(waterShader, model, VP, clk, lamp1);*/
 
 			// GUIs (must be rendered last)
 			guiRender.render(guis);

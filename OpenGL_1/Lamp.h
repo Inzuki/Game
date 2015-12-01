@@ -5,11 +5,11 @@
 
 class Lamp {
 	public:
-		Lamp(glm::vec3);
+		Lamp(glm::vec3, glm::vec3);
 		~Lamp();
 
-		void draw(glm::mat4&, GLuint, GLuint, glm::mat4&);
-		glm::vec3 getLampPos();
+		void draw(glm::mat4&, GLuint&, glm::mat4&);
+		glm::vec3 getLampPos(), getColor();
 		int getVerts();
 		void moveLamp(glm::vec3);
 
@@ -17,6 +17,7 @@ class Lamp {
 		int vertexCount;
 		GLuint lamp, vertBuff;
 		glm::mat4 model;
+		glm::vec3 color;
 };
 
 #endif

@@ -9,7 +9,7 @@
 #define REFLECTION_HEIGHT   1024
 #define REFRACTION_WIDTH    1600
 #define REFRACTION_HEIGHT   1024
-#define WAVE_SPEED		  .00001
+#define WAVE_SPEED		  .00005
 
 class Water {
 	public:

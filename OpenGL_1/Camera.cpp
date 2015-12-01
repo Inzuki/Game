@@ -5,12 +5,14 @@
 
 glm::mat4 view, projection;
 //glm::vec3 position = glm::vec3(25.f, 55.f, 25.f);
-glm::vec3 direction, right, up;
+glm::vec3 direction = glm::vec3(0.f, 0.f,  3.f),
+			  right = glm::vec3(0.f, 0.f, -1.f),
+			  up    = glm::vec3(0.f, 1.f,  0.f);
 
-float horizontalAngle = 3.14f,
-	  verticalAngle   = 45.f,
+float yaw = 3.14f,
+	  pitch   = 45.f,
 	  initFOV         = 45.f,
-	  speed			  = 9.f,
+	  speed			  = 11.f,
 	  mouseSpeed      = 0.01f;
 
 bool cursorLocked = true, isTyping = false;
@@ -50,19 +52,24 @@ void computeMats(sf::Window &window, sf::Clock clk, float deltaTime){
 		window.setMouseCursorVisible(false);
 		sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2.f, window.getSize().y / 2.f));
 
-		horizontalAngle += mouseSpeed * float(window.getSize().x / 2.f - xpos);
-		verticalAngle   += mouseSpeed * float(window.getSize().y / 2.f - ypos);
+		yaw   += mouseSpeed * float(window.getSize().x / 2.f - xpos);
+		pitch += mouseSpeed * float(window.getSize().y / 2.f - ypos);
+
+		if(pitch > 45.55f)
+			pitch = 45.55f;
+		if(pitch < 42.4f)
+			pitch = 42.4f;
 
 		direction = glm::vec3(
-			cos(verticalAngle) * sin(horizontalAngle),
-			sin(verticalAngle),
-			cos(verticalAngle) * cos(horizontalAngle)
+			cos(pitch) * sin(yaw),
+			sin(pitch),
+			cos(pitch) * cos(yaw)
 		);
 
 		right = glm::vec3(
-			sin(horizontalAngle - 3.14f / 2.f),
+			sin(yaw - 3.14f / 2.f),
 			0,
-			cos(horizontalAngle - 3.14f / 2.f)
+			cos(yaw - 3.14f / 2.f)
 		);
 
 		// handle movement
@@ -92,8 +99,8 @@ void computeMats(sf::Window &window, sf::Clock clk, float deltaTime){
 			position + direction,
 			up
 		);
-
-		projection = glm::perspective(initFOV, 4.f / 3.f, .1f, 256.f);
+		
+		projection = glm::perspective(initFOV, 4.f / 3.f, 0.1f, 1000.0f);
 	}else
 		window.setMouseCursorVisible(true);
 }
@@ -109,24 +116,30 @@ void computeMats_reflection(sf::Window &window, sf::Clock clk, float deltaTime){
 		window.setMouseCursorVisible(false);
 		sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2.f, window.getSize().y / 2.f));
 
-		horizontalAngle += mouseSpeed * float(window.getSize().x / 2.f - xpos);
-		verticalAngle   += mouseSpeed * float(window.getSize().y / 2.f - ypos);
+		yaw   += mouseSpeed * float(window.getSize().x / 2.f - xpos);
+		pitch += mouseSpeed * float(window.getSize().y / 2.f - ypos);
+
+		if(pitch > 45.55f)
+			pitch = 45.55f;
+		if(pitch < 42.4f)
+			pitch = 42.4f;
 
 		direction = glm::vec3(
-			cos(verticalAngle) * sin(horizontalAngle),
-			-sin(verticalAngle),
-			cos(verticalAngle) * cos(horizontalAngle)
+			 cos(pitch) * sin(yaw),
+			-sin(pitch),
+			 cos(pitch) * cos(yaw)
 		);
 
 		right = glm::vec3(
-			sin(horizontalAngle - 3.14f / 2.f),
+			sin(yaw - 3.14f / 2.f),
 			0,
-			cos(horizontalAngle - 3.14f / 2.f)
+			cos(yaw - 3.14f / 2.f)
 		);
 
 		// handle movement
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::W)){
 			position.x += direction.x * speed * deltaTime;
+			position.y -= direction.y * speed * deltaTime;
 			position.z += direction.z * speed * deltaTime;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
@@ -135,6 +148,7 @@ void computeMats_reflection(sf::Window &window, sf::Clock clk, float deltaTime){
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::D)){
 			position.x += right.x * speed * deltaTime;
+			position.y -= direction.y * speed * deltaTime;
 			position.z += right.z * speed * deltaTime;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){

@@ -8,6 +8,7 @@
 class OBJ {
 	public:
 		OBJ(const char *, const char *);
+		OBJ(const char *, const char *, float, float);
 		~OBJ();
 		GLuint getTexture();
 		void draw(glm::mat4&, glm::mat4&, glm::mat4&, GLuint&, glm::vec4&);
@@ -15,6 +16,7 @@ class OBJ {
 
 	private:
 		int vertexCount;
+		float shineDamper, reflectivity;
 		GLuint obj, vertBuff, texBuff, normBuff, texture;
 };
 
