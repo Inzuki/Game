@@ -12,7 +12,7 @@ glm::vec3 direction = glm::vec3(0.f, 0.f,  3.f),
 float yaw = 3.14f,
 	  pitch   = 45.f,
 	  initFOV         = 45.f,
-	  speed			  = 11.f,
+	  speed			  = 20.f,
 	  mouseSpeed      = 0.01f;
 
 bool cursorLocked = true, isTyping = false;
@@ -50,7 +50,7 @@ void computeMats(sf::Window &window, sf::Clock clk, float deltaTime){
 			   ypos = sf::Mouse::getPosition().y;
 
 		window.setMouseCursorVisible(false);
-		sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2.f, window.getSize().y / 2.f));
+		sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2, window.getSize().y / 2));
 
 		yaw   += mouseSpeed * float(window.getSize().x / 2.f - xpos);
 		pitch += mouseSpeed * float(window.getSize().y / 2.f - ypos);
@@ -100,7 +100,7 @@ void computeMats(sf::Window &window, sf::Clock clk, float deltaTime){
 			up
 		);
 		
-		projection = glm::perspective(initFOV, 4.f / 3.f, 0.1f, 1000.0f);
+		projection = glm::perspective(initFOV, 4.f / 3.f, 0.1f, 333.0f);
 	}else
 		window.setMouseCursorVisible(true);
 }
@@ -114,7 +114,7 @@ void computeMats_reflection(sf::Window &window, sf::Clock clk, float deltaTime){
 			   ypos = sf::Mouse::getPosition().y;
 
 		window.setMouseCursorVisible(false);
-		sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2.f, window.getSize().y / 2.f));
+		sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2, window.getSize().y / 2));
 
 		yaw   += mouseSpeed * float(window.getSize().x / 2.f - xpos);
 		pitch += mouseSpeed * float(window.getSize().y / 2.f - ypos);

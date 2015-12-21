@@ -21,7 +21,7 @@ Water::Water(int window_width, int window_height){
 }
 
 void Water::render(GLuint &shader, glm::mat4 &model, glm::mat4 &VP, sf::Clock &clk, Lamp &lamp){
-	moveFactor += WAVE_SPEED * clk.getElapsedTime().asSeconds();
+	moveFactor += (float)WAVE_SPEED * clk.getElapsedTime().asSeconds();
 	fmod(moveFactor, 1.f);
 
 	glUniform3f(glGetUniformLocation(

@@ -32,7 +32,7 @@ class Water {
 			   refractionFrameBuffer, refractionTexture, refractionDepthTexture,
 			   dudvMap, normalMap;
 		GLuint waterVAO, waterVBO;
-		const float scale = 75.f;
+		const float scale = 105.f;
 		float moveFactor = 0.f;
 		
 		void initReflectionFrameBuffer(int, int);

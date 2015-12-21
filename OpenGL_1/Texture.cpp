@@ -30,7 +30,7 @@ GLuint loadTexture(const char *file){
 
 	glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -0.5f);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, (GLint)-0.5f);
 
 	glBindTexture(GL_TEXTURE_2D, 0); // unbind
 

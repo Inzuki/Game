@@ -54,6 +54,12 @@
     <ClCompile Include="OLD_MAIN-2.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
+    <ClCompile Include="OLD_TERRAIN.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MousePicker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="vertex.txt">
@@ -98,6 +104,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Water.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MousePicker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

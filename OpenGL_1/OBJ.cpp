@@ -114,7 +114,7 @@ OBJ::OBJ(const char *objName, const char *textureFile, float shineDamper, float 
 OBJ::OBJ(const char *objName, const char *textureFile){
 	// set vars
 	shineDamper  = 100.f;
-	reflectivity =  0.5f;
+	reflectivity =  0.1f;
 
 	// load the texture, ez
 	texture = loadTexture(textureFile);

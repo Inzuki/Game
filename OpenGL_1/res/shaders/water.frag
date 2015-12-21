@@ -12,6 +12,7 @@ uniform sampler2D refractionTex;
 uniform sampler2D dudvMap;
 uniform sampler2D normalMap;
 uniform sampler2D depthMap;
+uniform vec3 sunColor;
 
 uniform float moveFactor;
 
@@ -63,7 +64,8 @@ void main(){
 	vec3 reflectedLight = reflect(normalize(fromLightVec), normal);
 	float specular = max(dot(reflectedLight, viewVec), 0.0);
 	specular = pow(specular, shineDamper);
-	vec3 specularHighlights = vec3(1.0, 1.0, 1.0) * specular * reflectivity * clamp(waterDepth / 5.0, 0.0, 1.0);
+	// change sunColor to vec3(1.0, 1.0, 1.0) for white highlights always
+	vec3 specularHighlights = sunColor * specular * reflectivity * clamp(waterDepth / 5.0, 0.0, 1.0);
 
 	// apply texture to quad
 	color = mix(reflectColor, refractColor, refractFactor);

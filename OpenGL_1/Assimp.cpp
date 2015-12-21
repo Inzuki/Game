@@ -30,21 +30,21 @@ bool core::ModelLoader::loadModel(const char *fp, Model *m){
 
 void core::ModelLoader::processAnimations(const aiScene* scene, Model *m){
 	if(scene->HasAnimations()){
-		for(int x = 0; x < scene->mNumAnimations; x++){
+		for(std::size_t x = 0; x < scene->mNumAnimations; x++){
 			Model::Animation tempAnim;
 			tempAnim.name = scene->mAnimations[x]->mName.data;
 			tempAnim.duration = scene->mAnimations[x]->mDuration;
 			tempAnim.ticksPerSec = scene->mAnimations[x]->mTicksPerSecond;
 
-			for(int y = 0; y < scene->mAnimations[x]->mNumChannels; y++){
+			for(std::size_t y = 0; y < scene->mAnimations[x]->mNumChannels; y++){
 				Model::Animation::Channel tempChan;
 				tempChan.name = scene->mAnimations[x]->mChannels[y]->mNodeName.data;
 
-				for(int z = 0; z < scene->mAnimations[x]->mChannels[y]->mNumPositionKeys; z++)
+				for(std::size_t z = 0; z < scene->mAnimations[x]->mChannels[y]->mNumPositionKeys; z++)
 					tempChan.mPositionKeys.push_back(scene->mAnimations[x]->mChannels[y]->mPositionKeys[z]);
-				for(int z = 0; z < scene->mAnimations[x]->mChannels[y]->mNumRotationKeys; z++)
+				for(std::size_t z = 0; z < scene->mAnimations[x]->mChannels[y]->mNumRotationKeys; z++)
 					tempChan.mRotationKeys.push_back(scene->mAnimations[x]->mChannels[y]->mRotationKeys[z]);
-				for(int z = 0; z < scene->mAnimations[x]->mChannels[y]->mNumScalingKeys; z++)
+				for(std::size_t z = 0; z < scene->mAnimations[x]->mChannels[y]->mNumScalingKeys; z++)
 					tempChan.mScalingKeys.push_back(scene->mAnimations[x]->mChannels[y]->mScalingKeys[z]);
 
 				tempAnim.channels.push_back(tempChan);
@@ -145,7 +145,7 @@ void core::ModelLoader::processMesh(const aiScene *scene, aiNode *node, aiMesh *
 	}
 
 	if(mesh->HasBones()){
-		for(int x = 0; x < mesh->mNumBones; x++){
+		for(std::size_t x = 0; x < mesh->mNumBones; x++){
 			unsigned int index = 0;
 
 			if(m->boneID.find(mesh->mBones[x]->mName.data) == m->boneID.end())
@@ -155,24 +155,24 @@ void core::ModelLoader::processMesh(const aiScene *scene, aiNode *node, aiMesh *
 
 			m->boneID[mesh->mBones[x]->mName.data] = index;
 
-			for(int y = 0; y < m->animations[m->currentAnim].channels.size(); y++)
+			for(std::size_t y = 0; y < m->animations[m->currentAnim].channels.size(); y++)
 				if(m->animations[m->currentAnim].channels[y].name == mesh->mBones[x]->mName.data)
 					m->animations[m->currentAnim].boneOffset[mesh->mBones[x]->mName.data] = toMat4(&mesh->mBones[x]->mOffsetMatrix);
 
-			for(int y = 0; y < mesh->mBones[x]->mNumWeights; y++){
+			for(std::size_t y = 0; y < mesh->mBones[x]->mNumWeights; y++){
 				unsigned int vertexID = mesh->mBones[x]->mWeights[y].mVertexId;
 
 				if(tempMesh.boneID[vertexID].x == -333){
-					tempMesh.boneID[vertexID].x = index;
+					tempMesh.boneID[vertexID].x = (float)index;
 					tempMesh.weights[vertexID].x = mesh->mBones[x]->mWeights[y].mWeight;
 				}else if(tempMesh.boneID[vertexID].y == -333){
-					tempMesh.boneID[vertexID].y = index;
+					tempMesh.boneID[vertexID].y = (float)index;
 					tempMesh.weights[vertexID].y = mesh->mBones[x]->mWeights[y].mWeight;
 				}else if(tempMesh.boneID[vertexID].z == -333){
-					tempMesh.boneID[vertexID].z = index;
+					tempMesh.boneID[vertexID].z = (float)index;
 					tempMesh.weights[vertexID].z = mesh->mBones[x]->mWeights[y].mWeight;
 				}else if(tempMesh.boneID[vertexID].w == -333){
-					tempMesh.boneID[vertexID].w = index;
+					tempMesh.boneID[vertexID].w = (float)index;
 					tempMesh.weights[vertexID].w = mesh->mBones[x]->mWeights[y].mWeight;
 				}
 			}
@@ -190,7 +190,7 @@ void core::Model::tick(double time){
 void core::Model::updateBoneTree(double timeInTicks, Model::Animation::BoneNode *node, glm::mat4 &parentTransform){
 	int chanIndex = 0;
 
-	for(int x = 0; x < animations[currentAnim].channels.size(); x++)
+	for(std::size_t x = 0; x < animations[currentAnim].channels.size(); x++)
 		if(node->name == animations[currentAnim].channels[x].name)
 			chanIndex = x;
 
@@ -205,19 +205,19 @@ void core::Model::updateBoneTree(double timeInTicks, Model::Animation::BoneNode 
 
 	int key1, key2;
 	if(std::round(animTime) < animTime){
-		key1 = std::round(animTime);
+		key1 = (int)std::round(animTime);
 		key2 = key1 + 1;
 	}else {
-		key1 = std::round(animTime) - 1;
-		key2 = std::round(animTime);
+		key1 = (int)std::round(animTime) - 1;
+		key2 = (int)std::round(animTime);
 	}
 
 	if(animations[currentAnim].channels[chanIndex].mPositionKeys.size() > 1)
-		lerp(aiTranslation, animations[currentAnim].channels[chanIndex].mPositionKeys[key1].mValue, animations[currentAnim].channels[chanIndex].mPositionKeys[key2].mValue, animTime - key1);
+		lerp(aiTranslation, animations[currentAnim].channels[chanIndex].mPositionKeys[key1].mValue, animations[currentAnim].channels[chanIndex].mPositionKeys[key2].mValue, float(animTime - key1));
 	if(animations[currentAnim].channels[chanIndex].mScalingKeys.size() > 1)
-		lerp(aiScale, animations[currentAnim].channels[chanIndex].mScalingKeys[key1].mValue, animations[currentAnim].channels[chanIndex].mScalingKeys[key2].mValue, animTime - key1);
+		lerp(aiScale, animations[currentAnim].channels[chanIndex].mScalingKeys[key1].mValue, animations[currentAnim].channels[chanIndex].mScalingKeys[key2].mValue, float(animTime - key1));
 	if(animations[currentAnim].channels[chanIndex].mRotationKeys.size() > 1)
-		slerp(aiRotation, animations[currentAnim].channels[chanIndex].mRotationKeys[key1].mValue, animations[currentAnim].channels[chanIndex].mRotationKeys[key2].mValue, animTime - key1);
+		slerp(aiRotation, animations[currentAnim].channels[chanIndex].mRotationKeys[key1].mValue, animations[currentAnim].channels[chanIndex].mRotationKeys[key2].mValue, float(animTime - key1));
 
 	glm::vec3 translation((GLfloat)aiTranslation.x, (GLfloat)aiTranslation.y, (GLfloat)aiTranslation.z);
 	glm::vec3 scaling((GLfloat)aiScale.x, (GLfloat)aiScale.y, (GLfloat)aiScale.z);
@@ -231,7 +231,7 @@ void core::Model::updateBoneTree(double timeInTicks, Model::Animation::BoneNode 
 
 	animations[currentAnim].boneTrans[boneID[node->name]] = finalModel * animations[currentAnim].boneOffset[node->name];
 
-	for(int x = 0; x < node->children.size(); x++)
+	for(std::size_t x = 0; x < node->children.size(); x++)
 		updateBoneTree(timeInTicks, &node->children[x], finalModel);
 }
 
@@ -242,7 +242,7 @@ void core::Model::render(float dt, glm::mat4 &model, glm::mat4 &viewMat, glm::ma
 		return;
 	
 	glUseProgram(shader);
-	for(int x = 0; x < meshes.size(); x++){
+	for(std::size_t x = 0; x < meshes.size(); x++){
 		glBindVertexArray(meshes[x].vao);
 		
 		glUniform3f(glGetUniformLocation(shader, "viewPos"), getPos().x, getPos().y, getPos().z);
@@ -296,7 +296,7 @@ void core::Model::init(){
 
 	shader = loadShaders("skinning.vert", "skinning.frag");
 
-	for(int x = 0; x < meshes.size(); x++){
+	for(std::size_t x = 0; x < meshes.size(); x++){
 		glGenVertexArrays(1, &meshes[x].vao);
 		glBindVertexArray(meshes[x].vao);
 

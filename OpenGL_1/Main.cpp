@@ -9,13 +9,14 @@
 #include "Shader.h"
 #include "Terrain.h"
 #include "Texture.h"
+#include "MousePicker.h"
 
 #define WATER_HEIGHT 25.0
 #define FREE_CAM 1
 
 int main(){
 	// initialize SFML-OpenGL window
-		char window_title[128] = "Horror Game";
+		char window_title[128] = "OpenGL";
 		sf::ContextSettings contextSettings;
 		contextSettings.antialiasingLevel = 4;
 		contextSettings.depthBits = 64;
@@ -34,8 +35,8 @@ int main(){
 		glewExperimental = true; glewInit();
 		glEnable(GL_MULTISAMPLE);  
 		glEnable(GL_DEPTH_TEST);
-		//glEnable(GL_CULL_FACE);
-		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+		glEnable(GL_CULL_FACE);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
 	// load shaders
 		GLuint lampShader     = loadShaders("lamp.vert",    "lamp.frag");
@@ -45,25 +46,33 @@ int main(){
 		GLuint terrainShader  = loadShaders("terrain.vert", "terrain.frag");
 
 	// initialize lamps
-		Lamp lamp1(glm::vec3(20.f, 75.f, 20.f), glm::vec3(1.f, 1.f, 1.f));
+		//model = glm::translate(model, glm::vec3(25.f, -7.75f, 25.f));
+		Lamp sun(glm::vec3(400.f, 33.f, 15.f), glm::vec3(0.9f, 0.9f, 0.2f));
+		Lamp lamp2(glm::vec3(25.f, 2.75f, 25.f), glm::vec3(1.f, 1.0f, 0.0f), glm::vec3(0.5f, 0.01f, 0.001f));
+		Lamp lamp3(glm::vec3(20.f, 2.f, 50.f), glm::vec3(0.f, 0.0f, 1.0f), glm::vec3(0.5f, 0.01f, 0.001f));
+		std::vector<Lamp> lamps;
+		lamps.push_back(sun);
+		lamps.push_back(lamp2);
+		lamps.push_back(lamp3);
 
 	// load terrain
-		Terrain terrain1("height.jpg", window, terrainShader);
-		SimpleTerrain sTerrain1(64, 64, "res/textures/sandgrass.jpg");
+		SimpleTerrain sTerrain1("res/textures/height2.jpg", terrainShader);
 
 	// load models
-		OBJ stall("stall.obj", "res/textures/stallTexture.png");
+		OBJ stall("stall.obj", "res/textures/stallTexture.png"),
+			lamp_post("lamp.obj", "res/textures/lamp_post.png"),
+			lamp_cube("cube.obj", NULL);
 
 	// load skyboxes
 		#pragma region skybox
 		// order of skyboxes (from top to bottom): right, left, top, bottom, back, front
 			std::vector<const GLchar*> faces;
-			faces.push_back("redday_right.jpg");
-			faces.push_back("redday_left.jpg");
-			faces.push_back("redday_top.jpg");
-			faces.push_back("redday_top.jpg");
-			faces.push_back("redday_front.jpg");
-			faces.push_back("redday_back.jpg");
+			faces.push_back("SunSetLeft2048.png");
+			faces.push_back("SunSetRight2048.png");
+			faces.push_back("SunSetUp2048.png");
+			faces.push_back("SunSetDown2048.png");
+			faces.push_back("SunSetFront2048.png");
+			faces.push_back("SunSetBack2048.png");
 			CubeMap skybox1(faces);
 		#pragma endregion
 
@@ -80,14 +89,25 @@ int main(){
 		std::vector<GUI> guis;
 		GUIRenderer guiRender;
 
+	// initialize mouse picker
+		MousePicker mousePicker(sTerrain1);
+
 	// light properties
+		glUseProgram(waterShader);
+		glUniform3f(glGetUniformLocation(waterShader,    "sunColor"), sun.getColor().x, sun.getColor().y, sun.getColor().z);
+		glUseProgram(terrainShader);
+		glUniform3f(glGetUniformLocation(terrainShader,  "skyColor"), 0.2f, 0.3f, 0.3f);
+		glUseProgram(lightingShader);
 		glUniform1i(glGetUniformLocation(lightingShader, "material.diffuse"),  0);
+		glUniform3f(glGetUniformLocation(lightingShader, "skyColor"), 0.2f, 0.3f, 0.3f);
+
+	glm::vec3 ray_start = position, ray_finish(1.f);
 
 	bool running = true;
 	while(running){
 		// set the player's Y coordinate based on the terrain's height at that position
 		if(FREE_CAM == 0)
-			moveY(terrain1.getHeight(getPos().x, getPos().z) + 4.5f);
+			moveY(-sTerrain1.getHeight(getPos().x, getPos().z) + 20.f);
 
 		// calculate timestamp
 		static float lastTime = clk.getElapsedTime().asSeconds();
@@ -103,17 +123,21 @@ int main(){
 				running = false;
 
 			// when the window is resized, fix the viewport
-			if(event.type == sf::Event::Resized){
+			if(event.type == sf::Event::Resized)
 				glViewport(0, 0, window.getSize().x, window.getSize().y);
-				terrain1.updateRes(window, terrainShader);
-			}
 
 			if(event.type == sf::Event::KeyReleased)
 				if(event.key.code == sf::Keyboard::Q)
 					setCursorLocked();
 		}
+			
+		mousePicker.update(window);
+		if(sf::Mouse::isButtonPressed(sf::Mouse::Left)){
+			ray_start  = position;
+			ray_finish = ray_start + mousePicker.getCurrentRay() * 10.f;
+		}
 
-		glm::mat4 model, VP;
+		glm::mat4 model;
 		glm::vec4 clipPlane;
 
 		glEnable(GL_CLIP_DISTANCE0);
@@ -129,7 +153,6 @@ int main(){
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			// universal object properties (like size)
-			VP = getProjectionMatrix() * getViewMatrix();
 			clipPlane = glm::vec4(0.f, 1.f, 0.f, -WATER_HEIGHT + 0.5f);
 
 			// skybox
@@ -141,43 +164,51 @@ int main(){
 		
 			// draw terrain
 			glUseProgram(terrainShader);
-			terrain1.updateRes(REFLECTION_WIDTH, REFLECTION_HEIGHT, terrainShader);
-			terrain1.draw(getProjectionMatrix(), getViewMatrix(), lamp1, terrainShader, clipPlane);
+			sTerrain1.draw(getProjectionMatrix(), getViewMatrix(), lamps, terrainShader, clipPlane);
 
 			// setup light properties
 			glUseProgram(lightingShader);
-			glUniform3f(glGetUniformLocation(
-				lightingShader, "lightPos"),
-				lamp1.getLampPos().x,
-				lamp1.getLampPos().y,
-				lamp1.getLampPos().z
-			);
-			glUniform3f(glGetUniformLocation(
-				lightingShader, "lightColor"),
-				lamp1.getColor().x,
-				lamp1.getColor().y,
-				lamp1.getColor().z
-			);
-			
+			for(int i = 0; i < MAX_LIGHTS; i++){
+				char light_data[64];
+				sprintf(light_data, "lightPos[%i]", i);
+				glUniform3f(glGetUniformLocation(lightingShader, light_data),
+							lamps[i].getLampPos().x,
+							lamps[i].getLampPos().y,
+							lamps[i].getLampPos().z
+				);
+				sprintf(light_data, "lightColor[%i]", i);
+				glUniform3f(glGetUniformLocation(lightingShader, light_data),
+							lamps[i].getColor().x,
+							lamps[i].getColor().y,
+							lamps[i].getColor().z
+				);
+				sprintf(light_data, "attenuation[%i]", i);
+				glUniform3f(glGetUniformLocation(lightingShader, light_data),
+							lamps[i].getAttenuation().x,
+							lamps[i].getAttenuation().y,
+							lamps[i].getAttenuation().z
+				);
+			}
+
 			// draw stall
 			model = glm::mat4();
-			model = glm::translate(model, glm::vec3(5.f, 38.f, 5.f));
+			model = glm::translate(model, glm::vec3(6.f, -3.5f, 6.f));
 			model = glm::rotate(model, -2.5f, glm::vec3(0.f, 1.f, 0.f));
 			stall.draw(model, getProjectionMatrix(), getViewMatrix(), lightingShader, clipPlane);
+			
+			// draw lamp post
+			model = glm::mat4();
+			//model = glm::translate(model, glm::vec3(25.f, -7.75f, 25.f));
+			model = glm::translate(model, ray_finish);
+			lamp_post.draw(model, getProjectionMatrix(), getViewMatrix(), lightingShader, clipPlane);
 
 			// draw guard
 			model = glm::mat4();
-			model = glm::translate(model, glm::vec3(12.f, 38.f, 5.f));
+			model = glm::translate(model, glm::vec3(12.f, -3.5f, 5.f));
 			model = glm::rotate(model, 4.725f, glm::vec3(1.f, 0.f, 0.f));
 			model = glm::scale(model, glm::vec3(.1f, .1f, .1f));
 			mdl.tick(clk.getElapsedTime().asSeconds() / 2.f);
 			mdl.render(deltaTime, model, getProjectionMatrix(), getViewMatrix(), clipPlane);
-
-			// draw lamps
-			glUseProgram(lampShader);
-			model = glm::mat4();
-			model = glm::translate(model, lamp1.getLampPos());
-			lamp1.draw(model, lampShader, VP);
 
 			//fbos.unbindCurrentFrameBuffer(window.getSize().x, window.getSize().y);
 		#pragma endregion
@@ -193,7 +224,6 @@ int main(){
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			// universal object properties (like size)
-			VP = getProjectionMatrix() * getViewMatrix();
 			clipPlane = glm::vec4(0.f, -1.f, 0.f, WATER_HEIGHT + 0.5f);
 
 			// skybox
@@ -205,29 +235,28 @@ int main(){
 		
 			// draw terrain
 			glUseProgram(terrainShader);
-			terrain1.updateRes(REFRACTION_WIDTH, REFRACTION_HEIGHT, terrainShader);
-			terrain1.draw(getProjectionMatrix(), getViewMatrix(), lamp1, terrainShader, clipPlane);
-
+			sTerrain1.draw(getProjectionMatrix(), getViewMatrix(), lamps, terrainShader, clipPlane);
+			
 			glUseProgram(lightingShader);
 			// draw stall
 			model = glm::mat4();
-			model = glm::translate(model, glm::vec3(5.f, 38.f, 5.f));
+			model = glm::translate(model, glm::vec3(6.f, -3.5f, 6.f));
 			model = glm::rotate(model, -2.5f, glm::vec3(0.f, 1.f, 0.f));
 			stall.draw(model, getProjectionMatrix(), getViewMatrix(), lightingShader, clipPlane);
+			
+			// draw lamp post
+			model = glm::mat4();
+			//model = glm::translate(model, glm::vec3(25.f, -7.75f, 25.f));
+			model = glm::translate(model, ray_finish);
+			lamp_post.draw(model, getProjectionMatrix(), getViewMatrix(), lightingShader, clipPlane);
 
 			// draw guard
 			model = glm::mat4();
-			model = glm::translate(model, glm::vec3(12.f, 38.f, 5.f));
+			model = glm::translate(model, glm::vec3(12.f, -3.5f, 5.f));
 			model = glm::rotate(model, 4.725f, glm::vec3(1.f, 0.f, 0.f));
 			model = glm::scale(model, glm::vec3(.1f, .1f, .1f));
 			mdl.tick(clk.getElapsedTime().asSeconds() / 2.f);
 			mdl.render(deltaTime, model, getProjectionMatrix(), getViewMatrix(), clipPlane);
-
-			// draw lamps
-			glUseProgram(lampShader);
-			model = glm::mat4();
-			model = glm::translate(model, lamp1.getLampPos());
-			lamp1.draw(model, lampShader, VP);
 
 			fbos.unbindCurrentFrameBuffer(window.getSize().x, window.getSize().y);
 		#pragma endregion
@@ -238,7 +267,6 @@ int main(){
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			// universal object properties (like size)
-			VP = getProjectionMatrix() * getViewMatrix();
 			glDisable(GL_CLIP_DISTANCE0);
 			clipPlane = glm::vec4(0.f, -1.f, 0.f, 1000000);
 
@@ -251,20 +279,24 @@ int main(){
 		
 			// draw terrain
 			glUseProgram(terrainShader);
-			sTerrain1.draw(getProjectionMatrix(), getViewMatrix(), lamp1, terrainShader, clipPlane);
-			//terrain1.updateRes(window, terrainShader);
-			//terrain1.draw(getProjectionMatrix(), getViewMatrix(), lamp1, terrainShader, clipPlane);
-
+			sTerrain1.draw(getProjectionMatrix(), getViewMatrix(), lamps, terrainShader, clipPlane);
+			
 			glUseProgram(lightingShader);
 			// draw stall
 			model = glm::mat4();
-			model = glm::translate(model, glm::vec3(5.f, 38.f, 5.f));
+			model = glm::translate(model, glm::vec3(6.f, -3.5f, 6.f));
 			model = glm::rotate(model, -2.5f, glm::vec3(0.f, 1.f, 0.f));
 			stall.draw(model, getProjectionMatrix(), getViewMatrix(), lightingShader, clipPlane);
+			
+			// draw lamp post
+			model = glm::mat4();
+			//model = glm::translate(model, glm::vec3(25.f, -7.75f, 25.f));
+			model = glm::translate(model, ray_finish);
+			lamp_post.draw(model, getProjectionMatrix(), getViewMatrix(), lightingShader, clipPlane);
 
 			// draw guard
 			model = glm::mat4();
-			model = glm::translate(model, glm::vec3(12.f, 38.f, 5.f));
+			model = glm::translate(model, glm::vec3(12.f, -3.5f, 5.f));
 			model = glm::rotate(model, 4.725f, glm::vec3(1.f, 0.f, 0.f));
 			model = glm::scale(model, glm::vec3(.1f, .1f, .1f));
 			mdl.tick(clk.getElapsedTime().asSeconds() / 2.f);
@@ -272,20 +304,32 @@ int main(){
 
 			// draw lamps
 			glUseProgram(lampShader);
-			model = glm::mat4();
-			//lamp1.moveLamp(glm::vec3(clk.getElapsedTime().asSeconds() / -20.f,
-			//						 0.f,
-			//						 clk.getElapsedTime().asSeconds() / -20.f)
-			//);
-			model = glm::translate(model, lamp1.getLampPos());
-			lamp1.draw(model, lampShader, VP);
+			for(int i = 0; i < MAX_LIGHTS; i++){
+				model = glm::mat4();
+				/*
+				lamps[i].moveLamp(
+					glm::vec3(
+						clk.getElapsedTime().asSeconds() / -20.f,
+						0.f,
+						clk.getElapsedTime().asSeconds() / -20.f
+					)
+				);
+				//*/
+
+				if(i == 1)
+					model = glm::translate(model, ray_finish + glm::vec3(0.f, 10.f, 0.f));
+				else
+					model = glm::translate(model, lamps[i].getLampPos());
+
+				lamps[i].draw(lamp_cube, model, lampShader, getProjectionMatrix(), getViewMatrix());
+			}
 
 			// draw water quad
-			/*glUseProgram(waterShader);
+			glUseProgram(waterShader);
 			model = glm::mat4();
-			model = glm::translate(model, glm::vec3(100.f, 25.f, 100.f));
+			model = glm::translate(model, glm::vec3(125.f, -20.f, 125.f));
 			model = glm::scale(model, glm::vec3(fbos.getScale(), fbos.getScale(), fbos.getScale()));
-			fbos.render(waterShader, model, VP, clk, lamp1);*/
+			fbos.render(waterShader, model, getProjectionMatrix() * getViewMatrix(), clk, sun);
 
 			// GUIs (must be rendered last)
 			guiRender.render(guis);

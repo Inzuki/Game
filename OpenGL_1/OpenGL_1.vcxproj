@@ -76,9 +76,11 @@
     <ClCompile Include="INCLUDES.cpp" />
     <ClCompile Include="Lamp.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MousePicker.cpp" />
     <ClCompile Include="OBJ.cpp" />
     <ClCompile Include="OLD_MAIN-2.cpp" />
     <ClCompile Include="OLD_MAIN.cpp" />
+    <ClCompile Include="OLD_TERRAIN.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -96,6 +98,7 @@
     <ClInclude Include="GUI.h" />
     <ClInclude Include="INCLUDES.h" />
     <ClInclude Include="Lamp.h" />
+    <ClInclude Include="MousePicker.h" />
     <ClInclude Include="OBJ.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Terrain.h" />

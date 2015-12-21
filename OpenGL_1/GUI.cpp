@@ -56,7 +56,8 @@ void GUIRenderer::render(std::vector<GUI> guis){
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST);
 	
-	for(int i = 0; i < guis.size(); i++){
+	//for(int i = 0; i < guis.size(); i++){
+	for(std::size_t i = 0; i < guis.size(); i++){
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, guis[i].getTexture());
 		glUniform1i(glGetUniformLocation(shader, "guiTexture"), 0);
