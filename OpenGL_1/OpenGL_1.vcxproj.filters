@@ -57,8 +57,14 @@
     <ClCompile Include="OLD_TERRAIN.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="MousePicker.cpp">
+    <ClCompile Include="MAIN-1-6-17.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ShadowMap.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MAIN-2-11-17.cpp">
+      <Filter>Resource Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -72,6 +78,9 @@
       <Filter>Resource Files</Filter>
     </Text>
     <Text Include="fragment_lamp.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="main_with_water.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>
@@ -106,7 +115,7 @@
     <ClInclude Include="Water.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MousePicker.h">
+    <ClInclude Include="ShadowMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -10,6 +10,31 @@
 
 #define MAX_BONES 64
 
+// model loading
+struct Vertex {
+	glm::vec3 pos, normal;
+	glm::vec2 uvs;
+};
+
+struct Texture {
+	GLuint id;
+	std::string type;
+};
+
+class Mesh_MDL {
+	public:
+		std::vector<Vertex> vertices;
+		std::vector<GLuint> indices;
+		std::vector<Texture> textures;
+
+		Mesh_MDL(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures);
+		void draw(GLuint shader);
+	private:
+		GLuint VAO, VBO, EBO;
+		void setupMesh();
+};
+
+// animations
 namespace core {
 	struct Model {
 		struct Mesh {

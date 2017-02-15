@@ -1,5 +1,20 @@
 #include "Assimp.h"
 
+#pragma region model loading
+Mesh_MDL::Mesh_MDL(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures){
+	this->vertices = vertices;
+	this->indices  = indices;
+	this->textures = textures;
+
+	this->setupMesh();
+}
+
+void Mesh_MDL::setupMesh(){
+
+}
+#pragma endregion model loading
+
+#pragma region animations
 bool core::ModelLoader::loadModel(const char *fp, Model *m){
 	Assimp::Importer importer;
 
@@ -383,3 +398,4 @@ glm::mat4 core::toMat4(aiMatrix4x4 *ai){
 
 	return mat;
 }
+#pragma endregion animations

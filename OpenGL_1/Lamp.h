@@ -18,7 +18,7 @@ class Lamp {
 	private:
 		int vertexCount;
 		glm::mat4 model;
-		glm::vec3 color, attenuation;
+		glm::vec3 pos, color, attenuation;
 };
 
 #endif

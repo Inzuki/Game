@@ -17,6 +17,4 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#define MAX_LIGHTS 3
-
 extern glm::vec3 position;

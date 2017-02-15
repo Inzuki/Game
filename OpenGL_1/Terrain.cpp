@@ -109,7 +109,7 @@ void SimpleTerrain::draw(glm::mat4 &viewMat, glm::mat4 &projMat, std::vector<Lam
 	glUniform1i(glGetUniformLocation(shader, "bTex"),     3);
 	glUniform1i(glGetUniformLocation(shader, "blendMap"), 4);
 
-	for(int i = 0; i < MAX_LIGHTS; i++){
+	for(int i = 0; i < (int)lamps.size(); i++){
 		char light_data[64];
 		sprintf(light_data, "lightPos[%i]", i);
 		glUniform3f(glGetUniformLocation(shader, light_data),

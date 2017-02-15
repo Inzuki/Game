@@ -1,8 +1,5 @@
 #include "Camera.h"
 
-#define RAY_RANGE 600
-#define RECURSION_COUNT 200
-
 glm::mat4 view, projection;
 //glm::vec3 position = glm::vec3(25.f, 55.f, 25.f);
 glm::vec3 direction = glm::vec3(0.f, 0.f,  3.f),
@@ -22,6 +19,9 @@ glm::mat4 getProjectionMatrix(){ return projection; }
 glm::vec3 getPos(){ return position;  }
 glm::vec3 getDir(){ return direction; }
 glm::vec3 getRight(){ return right;   }
+glm::vec3 getUp(){    return up;      }
+
+void setProj(glm::mat4 &proj){ projection = proj; }
 
 void moveY(float y){
 	// the speed at which the player changes height
@@ -41,15 +41,38 @@ void moveY(float y){
 	}else
 		position.y = y;
 }
+void moveY_players(float &height, float y){
+	// the speed at which the player changes height
+	float changeSpeed = 0.15f,
+	// some range
+		  range = 0.05f;
+
+	// if the height is greater than the new height
+	if(height > (y + range)){
+		// lower the height to the new height
+		height -= (changeSpeed * abs(height - y)) / 0.5f;
+	}else
+	// else if the height is less than the new height
+	if(height < (y - range)){
+		// rise the height to the new height
+		height += (changeSpeed * abs(height - y)) / 0.5f;
+	}else
+		height = y;
+}
 
 void setCursorLocked(){ if(cursorLocked) cursorLocked = false; else cursorLocked = true; }
+void setTypingStatus(bool status){ isTyping = status; }
+bool typingStatus(){ return isTyping; }
+sf::Clock clik;
 
+// compute matricies
 void computeMats(sf::Window &window, sf::Clock clk, float deltaTime){
-	if(cursorLocked){
+	if(cursorLocked && !isTyping){
 		double xpos = sf::Mouse::getPosition().x,
 			   ypos = sf::Mouse::getPosition().y;
 
 		window.setMouseCursorVisible(false);
+
 		sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2, window.getSize().y / 2));
 
 		yaw   += mouseSpeed * float(window.getSize().x / 2.f - xpos);
@@ -94,17 +117,31 @@ void computeMats(sf::Window &window, sf::Clock clk, float deltaTime){
 
 		glm::vec3 up = glm::cross(right, direction);
 
+		///*
 		view = glm::lookAt(
 			position,
 			position + direction,
 			up
 		);
+		projection = glm::perspective(initFOV, 4.f / 3.f, 0.1f, 300.0f);
+		//*/
 		
-		projection = glm::perspective(initFOV, 4.f / 3.f, 0.1f, 333.0f);
-	}else
-		window.setMouseCursorVisible(true);
+		/*
+		float ck = clik.getElapsedTime().asSeconds();
+		glm::vec3 lightInvDir(glm::vec3(-7.f, 5.f, -6.f));
+
+		projection = glm::ortho<float>(-10, 10, -10, 10, -10, 20);
+		view = glm::lookAt(lightInvDir, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+		//*/
+	}else {
+		if(isTyping)
+			sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2, window.getSize().y / 2));
+		else
+			window.setMouseCursorVisible(true);
+	}
 }
 
+// compute matricies for water reflection (everything is upside down)
 void computeMats_reflection(sf::Window &window, sf::Clock clk, float deltaTime){
 	if(cursorLocked){
 		float distance = 2.f * (position.y - 25.f);

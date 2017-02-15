@@ -186,7 +186,7 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 	}
 
 	fclose(file);
-	
+
 	for(unsigned int i = 0; i < vertIndices.size(); i++){
 		vertices.push_back(tempVertices[vertIndices[i] - 1]);
 		textures.push_back( tempTextures[texIndices[i] - 1]);
@@ -223,13 +223,12 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 void OBJ::draw(glm::mat4 &model, glm::mat4 &viewMat, glm::mat4 &projMat, GLuint &shader, glm::vec4 &clipPlane){
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glUniform1i(glGetUniformLocation(shader, "material.diffuse"), 0);
 
 	glBindVertexArray(obj);
-		glUniform1f(glGetUniformLocation(shader, "shineDamper"),  shineDamper);
-		glUniform1f(glGetUniformLocation(shader, "reflectivity"), reflectivity);
-		glUniform4fv(glGetUniformLocation(shader, "plane"), 1, glm::value_ptr(clipPlane));
-		glUniform3f(glGetUniformLocation(shader, "viewPos"), getPos().x, getPos().y, getPos().z);
+		//glUniform1f(glGetUniformLocation(shader, "shineDamper"),  shineDamper);
+		//glUniform1f(glGetUniformLocation(shader, "reflectivity"), reflectivity);
+		//glUniform4fv(glGetUniformLocation(shader, "plane"), 1, glm::value_ptr(clipPlane));
+		// glUniform3f(glGetUniformLocation(shader, "viewPos"), getPos().x, getPos().y, getPos().z);
 		glUniformMatrix4fv(glGetUniformLocation(shader, "model"),   1, GL_FALSE, glm::value_ptr(model));
 		glUniformMatrix4fv(glGetUniformLocation(shader, "viewMat"), 1, GL_FALSE, glm::value_ptr(viewMat));
 		glUniformMatrix4fv(glGetUniformLocation(shader, "projMat"), 1, GL_FALSE, glm::value_ptr(projMat));
