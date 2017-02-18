@@ -28,6 +28,7 @@ void main(){
 	
 	outTexCoords  = vec2(texCoords.x, 1.0 - texCoords.y);
 	outNormal     = transpose(inverse(mat3(model))) * normal;
+	
 	toCamVec      = (inverse(viewMat) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPos.xyz;
 	
 	for(int i = 0; i < MAX_LIGHTS; i++){

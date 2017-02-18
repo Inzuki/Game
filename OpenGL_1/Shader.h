@@ -10,6 +10,7 @@
 #include <fstream>
 #include <string>
 
-GLuint loadShaders(const char *, const char *);
+GLuint loadShaders(const char *, const char *); // vertex and fragment
+GLuint loadShaders(const char *, const char *, const char *); // vertex, fragment, and geometry
 
 #endif

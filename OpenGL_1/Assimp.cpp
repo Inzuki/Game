@@ -1,7 +1,8 @@
 #include "Assimp.h"
 
 #pragma region model loading
-Mesh_MDL::Mesh_MDL(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures){
+// mesh
+Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures){
 	this->vertices = vertices;
 	this->indices  = indices;
 	this->textures = textures;
@@ -9,8 +10,174 @@ Mesh_MDL::Mesh_MDL(std::vector<Vertex> vertices, std::vector<GLuint> indices, st
 	this->setupMesh();
 }
 
-void Mesh_MDL::setupMesh(){
+void Mesh::draw(GLuint shader){
+	GLuint diffuseNr = 1;
+    GLuint specularNr = 1;
 
+    for(GLuint i = 0; i < this->textures.size(); i++){
+        glActiveTexture(GL_TEXTURE0 + i);
+
+        std::stringstream ss;
+        std::string number, name = this->textures[i].type;
+        if(name == "texture_diffuse")
+            ss << diffuseNr++; // Transfer GLuint to stream
+        else if(name == "texture_specular")
+            ss << specularNr++; // Transfer GLuint to stream
+        number = ss.str(); 
+        // Now set the sampler to the correct texture unit
+        glUniform1i(glGetUniformLocation(shader, (name + number).c_str()), i);
+        // And finally bind the texture
+        glBindTexture(GL_TEXTURE_2D, this->textures[i].id);
+    }
+        
+    // Also set each mesh's shininess property to a default value (if you want you could extend this to another mesh property and possibly change this value)
+    //glUniform1f(glGetUniformLocation(shader, "material.shininess"), 16.0f);
+
+    // Draw mesh
+    glBindVertexArray(this->VAO);
+    glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    // Always good practice to set everything back to defaults once configured.
+    for(GLuint i = 0; i < this->textures.size(); i++){
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+}
+
+void Mesh::setupMesh(){
+	glGenVertexArrays(1, &this->VAO);
+    glGenBuffers(1, &this->VBO);
+    glGenBuffers(1, &this->EBO);
+
+	glBindVertexArray(this->VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+	glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex), &this->vertices[0], GL_STATIC_DRAW); 
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(GLuint), &this->indices[0], GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);	
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+    glEnableVertexAttribArray(1);	
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, normal));
+    glEnableVertexAttribArray(2);	
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, uvs));
+
+    glBindVertexArray(0);
+}
+
+// model
+Model::Model(GLchar *path){
+	this->loadModel(path);
+}
+
+void Model::draw(GLuint shader){
+	for(GLuint i = 0; i < this->meshes.size(); i++)
+        this->meshes[i].draw(shader);
+}
+
+void Model::loadModel(std::string path){
+	Assimp::Importer importer;
+
+	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    if(!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode){
+        printf("ERROR::ASSIMP:: %s\n", importer.GetErrorString());
+        return;
+    }
+	
+	this->directory = path.substr(0, path.find_last_of('/'));
+	this->processNode(scene->mRootNode, scene);
+}
+
+void Model::processNode(aiNode* node, const aiScene *scene){
+	for(GLuint i = 0; i < node->mNumMeshes; i++){
+        aiMesh* mesh = scene->mMeshes[node->mMeshes[i]]; 
+        this->meshes.push_back(this->processMesh(mesh, scene));
+	}
+	
+	for(GLuint i = 0; i < node->mNumChildren; i++)
+		this->processNode(node->mChildren[i], scene);
+}
+
+Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene){
+	std::vector<Vertex> vertices;
+    std::vector<GLuint> indices;
+    std::vector<Texture> textures;
+
+    for(GLuint i = 0; i < mesh->mNumVertices; i++){
+        Vertex vertex;
+        glm::vec3 vector;
+
+        vector.x = mesh->mVertices[i].x;
+        vector.y = mesh->mVertices[i].y;
+        vector.z = mesh->mVertices[i].z;
+        vertex.pos = vector;
+
+        vector.x = mesh->mNormals[i].x;
+        vector.y = mesh->mNormals[i].y;
+        vector.z = mesh->mNormals[i].z;
+        vertex.normal = vector;
+
+        if(mesh->mTextureCoords[0]){
+            glm::vec2 vec;
+            vec.x = mesh->mTextureCoords[0][i].x; 
+            vec.y = mesh->mTextureCoords[0][i].y;
+            vertex.uvs = vec;
+        }else
+            vertex.uvs = glm::vec2(0.0f, 0.0f);
+
+        vertices.push_back(vertex);
+    }
+    
+	for(GLuint i = 0; i < mesh->mNumFaces; i++){
+        aiFace face = mesh->mFaces[i];
+
+        for(GLuint j = 0; j < face.mNumIndices; j++)
+            indices.push_back(face.mIndices[j]);
+    }
+
+    if(mesh->mMaterialIndex >= 0){
+        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+        
+		std::vector<Texture> diffuseMaps = this->loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+        
+		std::vector<Texture> specularMaps = this->loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+    }
+        
+    return Mesh(vertices, indices, textures);
+}
+
+std::vector<Texture> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName){
+	std::vector<Texture> textures;
+
+    for(GLuint i = 0; i < mat->GetTextureCount(type); i++){
+        aiString str;
+        mat->GetTexture(type, i, &str);
+        
+		GLboolean skip = false;
+        for(GLuint j = 0; j < textures_loaded.size(); j++){
+            if(std::strcmp(textures_loaded[j].path.C_Str(), str.C_Str()) == 0){
+                textures.push_back(textures_loaded[j]);
+                skip = true; // A texture with the same filepath has already been loaded, continue to next one. (optimization)
+                break;
+            }
+        }
+
+        if(!skip){
+			std::string filePath;
+			filePath = this->directory + '/' + str.C_Str();
+
+            Texture texture;
+            texture.id = loadTexture(filePath.c_str());
+            texture.type = typeName;
+            texture.path = str;
+            textures.push_back(texture);
+            this->textures_loaded.push_back(texture);  // Store it as texture loaded for entire model, to ensure we won't unnecesery load duplicate textures.
+        }
+    }
+    return textures;
 }
 #pragma endregion model loading
 

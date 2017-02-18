@@ -116,7 +116,7 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 	shineDamper  = 100.f;
 	reflectivity =  0.1f;
 
-	// load the texture, ez
+	// load the texture
 	texture = loadTexture(textureFile);
 	
 	// get setup to read OBJ
@@ -132,7 +132,7 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 	FILE *file = fopen(objFile, "r");
 
 	while(true){
-		char lineHeader[256];
+		char lineHeader[128];
 
 		int res = fscanf(file, "%s", lineHeader);
 		if(res == EOF)
@@ -160,7 +160,7 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 			std::string vertex1, vertex2, vertex3;
 			unsigned int vertexIndex[3], textureIndex[3], normalIndex[3];
 
-			fscanf(file,
+			int matches = fscanf(file,
 				   "%d/%d/%d %d/%d/%d %d/%d/%d\n",
 				   &vertexIndex[0],
 				   &textureIndex[0],
@@ -172,6 +172,9 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 				   &textureIndex[2],
 				   &normalIndex[2]
 			);
+
+			if(matches != 9)
+				printf("File cannot be read correctly.\n");
 			
 			vertIndices.push_back(vertexIndex[0]);
 			vertIndices.push_back(vertexIndex[1]);
@@ -182,6 +185,9 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 			normIndices.push_back(normalIndex[0]);
 			normIndices.push_back(normalIndex[1]);
 			normIndices.push_back(normalIndex[2]);
+		}else {
+			char garbage[1024];
+			fgets(garbage, 1024, file);
 		}
 	}
 

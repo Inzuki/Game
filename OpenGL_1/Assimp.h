@@ -5,8 +5,10 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <sstream>
 #include "Camera.h"
 #include "Shader.h"
+#include "Texture.h"
 
 #define MAX_BONES 64
 
@@ -19,19 +21,37 @@ struct Vertex {
 struct Texture {
 	GLuint id;
 	std::string type;
+	aiString path;
 };
 
-class Mesh_MDL {
+class Mesh {
 	public:
 		std::vector<Vertex> vertices;
 		std::vector<GLuint> indices;
 		std::vector<Texture> textures;
 
-		Mesh_MDL(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures);
-		void draw(GLuint shader);
+		Mesh(std::vector<Vertex>, std::vector<GLuint>, std::vector<Texture>);
+		void draw(GLuint);
+
 	private:
 		GLuint VAO, VBO, EBO;
 		void setupMesh();
+};
+
+class Model {
+	public:
+		Model(GLchar*);
+		void draw(GLuint);
+
+	private:
+		std::vector<Mesh> meshes;
+		std::string directory;
+		std::vector<Texture> textures_loaded;
+
+		void loadModel(std::string);
+		void processNode(aiNode*, const aiScene*);
+		Mesh processMesh(aiMesh*, const aiScene*);
+		std::vector<Texture> loadMaterialTextures(aiMaterial*, aiTextureType, std::string);
 };
 
 // animations

@@ -1,5 +1,6 @@
 ﻿#include "OBJ.h"
 #include "Lamp.h"
+#include "Assimp.h"
 #include "Camera.h"
 #include "Shader.h"
 #include "Texture.h"
@@ -73,7 +74,6 @@ void RenderScene(
 			
 	// draw lamp post
 	model = glm::mat4();
-	model = glm::translate(model, glm::vec3(0.f, 1.f, 0.f));
 	model = glm::rotate(model, clk.getElapsedTime().asSeconds(), glm::vec3(0.f, 1.f, 0.f));
 	lamp_post.draw(model, getProjectionMatrix(), getViewMatrix(), lightingShader, clipPlane);
 
@@ -148,7 +148,7 @@ int main(){
 	#pragma region model loading
 	OBJ stall("stall.obj", "res/textures/stallTexture.png"),
 		lamp_post("lamp.obj", "res/textures/lamp_post.png"),
-		lamp_post2("lamp_post.obj", "res/textures/lamp_post2.png"),
+		lamp_post2("tree.obj", "res/textures/tree.png"),
 		lamp_cube("cube.obj", "res/textures/blank.png");
 	#pragma endregion
 
@@ -325,7 +325,7 @@ int main(){
 						lamps[i].getAttenuation().z
 			);
 		}
-
+		
 		glUniform3fv(glGetUniformLocation(lightingShader, "lightPos_shade"), 1, &lightPos[0]);
         glUniform3fv(glGetUniformLocation(lightingShader, "viewPos"), 1, &getPos()[0]);
         glUniformMatrix4fv(glGetUniformLocation(lightingShader, "lightSpaceMat"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
