@@ -3,6 +3,7 @@
 #include "Assimp.h"
 #include "Camera.h"
 #include "Shader.h"
+#include "Shadows.h"
 #include "Texture.h"
 
 // for rendering a quad to the screen
@@ -37,7 +38,7 @@ void RenderScene(
 	sf::Clock &clk, float deltaTime,
 	OBJ &stall, OBJ &lamp_post, OBJ &lamp_cube,
 	glm::vec4 &clipPlane,
-	GLuint &lightingShader, GLuint &skyboxShader, GLuint &lampShader,
+	GLuint lightingShader, GLuint &skyboxShader, GLuint &lampShader,
 	GLuint &woodTexture,
 	GLuint &planeVAO,
 	CubeMap skybox,
@@ -122,14 +123,8 @@ int main(){
 	GLuint lampShader     = loadShaders("lamp.vert",    "lamp.frag");
 	GLuint lightingShader = loadShaders("default.vert", "default.frag");
 	GLuint skyboxShader   = loadShaders("skybox.vert",  "skybox.frag");
-	//GLuint terrainShader  = loadShaders("terrain.vert", "terrain.frag");
-
-	GLuint debugDepthQuad = loadShaders("debug_quad.vert", "debug_quad.frag");
-	GLuint simpleDepthShader = loadShaders("simpleDepthShader.vert", "simpleDepthShader.frag");
 	
 	// set up shader properties
-	//glUseProgram(terrainShader);
-	//glUniform3f(glGetUniformLocation(terrainShader,  "skyColor"), 0.2f, 0.3f, 0.3f);
 	glUseProgram(lightingShader);
 	glUniform1i(glGetUniformLocation(lightingShader, "material.diffuse"), 0);
 	glUniform1i(glGetUniformLocation(lightingShader, "shadowMap"), 1);
@@ -197,27 +192,7 @@ int main(){
 	#pragma region shadow mapping
 	glm::vec3 lightPos(glm::vec3(-45.f, 75.f, -40.f));
 
-	const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-    GLuint depthMapFBO;
-    glGenFramebuffers(1, &depthMapFBO);
-    // - Create depth texture
-    GLuint depthMap;
-    glGenTextures(1, &depthMap);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	shadow::Sun sun_shadow(lightPos);
 
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	#pragma endregion
@@ -268,32 +243,20 @@ int main(){
 		computeMats(window, clk, deltaTime);
 
 		#pragma region main_loop
-		// render shadows
-		glm::mat4 lightProjection, lightView;
-        glm::mat4 lightSpaceMatrix;
-		GLfloat near_plane = 1.f, far_plane = 150.f;
-		float space = 20.f;
-		lightProjection = glm::ortho(-space, space, -space, space, near_plane, far_plane);
-        lightView		= glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-        lightSpaceMatrix = lightProjection * lightView;
-
-		glUseProgram(simpleDepthShader);
-		glUniformMatrix4fv(glGetUniformLocation(simpleDepthShader, "lightSpaceMat"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
-        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-		//glCullFace(GL_FRONT);
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+		sun_shadow.renderShadows();
+		glViewport(0, 0, sun_shadow.getShadowWidth(), sun_shadow.getShadowWidth());
+		glBindFramebuffer(GL_FRAMEBUFFER, sun_shadow.getDepthMapFBO());
             glClear(GL_DEPTH_BUFFER_BIT);
             RenderScene(
 				clk, deltaTime,
 				stall, lamp_post2, lamp_cube,
 				clipPlane,
-				simpleDepthShader, skyboxShader, lampShader,
+				sun_shadow.getDepthShader(), skyboxShader, lampShader,
 				woodTexture, planeVAO,
 				skybox1,
 				lamps
 			);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glCullFace(GL_BACK);
 
 		// reset viewport, and display the scene as normal
 		glViewport(0, 0, window.getSize().x, window.getSize().y);
@@ -327,11 +290,11 @@ int main(){
 			);
 		}
 		
-		glUniform3fv(glGetUniformLocation(lightingShader, "lightPos_shade"), 1, &lightPos[0]);
+		glUniform3fv(glGetUniformLocation(lightingShader, "lightPos_shade"), 1, &sun_shadow.getSunPosition()[0]);
         glUniform3fv(glGetUniformLocation(lightingShader, "viewPos"), 1, &getPos()[0]);
-        glUniformMatrix4fv(glGetUniformLocation(lightingShader, "lightSpaceMat"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+        glUniformMatrix4fv(glGetUniformLocation(lightingShader, "lightSpaceMat"), 1, GL_FALSE, glm::value_ptr(sun_shadow.getMatrix()));
 		glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, depthMap);
+        glBindTexture(GL_TEXTURE_2D, sun_shadow.getDepthMap());
 
 		RenderScene(
 			clk, deltaTime,
@@ -342,14 +305,6 @@ int main(){
 			skybox1,
 			lamps
 		);
-		
-		glViewport(0, 0, 640, 480);
-		glUseProgram(debugDepthQuad);
-        glUniform1f(glGetUniformLocation(debugDepthQuad, "near_plane"), near_plane);
-        glUniform1f(glGetUniformLocation(debugDepthQuad, "far_plane"),  far_plane);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, depthMap);
-        RenderQuad(); // uncomment this line to see depth map
 
 		// disable vertex stuff
 		glDisableVertexAttribArray(0);
@@ -370,9 +325,6 @@ int main(){
 	glDeleteProgram(lightingShader);
 	glDeleteProgram(skyboxShader);
 	glDeleteProgram(lampShader);
-
-	glDeleteProgram(simpleDepthShader);
-	glDeleteProgram(debugDepthQuad);
 
 	// free ground
 	glDeleteVertexArrays(1, &planeVAO);
