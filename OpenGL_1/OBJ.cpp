@@ -179,9 +179,11 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 			vertIndices.push_back(vertexIndex[0]);
 			vertIndices.push_back(vertexIndex[1]);
 			vertIndices.push_back(vertexIndex[2]);
+
 			texIndices.push_back(textureIndex[0]);
 			texIndices.push_back(textureIndex[1]);
 			texIndices.push_back(textureIndex[2]);
+
 			normIndices.push_back(normalIndex[0]);
 			normIndices.push_back(normalIndex[1]);
 			normIndices.push_back(normalIndex[2]);
@@ -194,9 +196,17 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 	fclose(file);
 
 	for(unsigned int i = 0; i < vertIndices.size(); i++){
-		vertices.push_back(tempVertices[vertIndices[i] - 1]);
-		textures.push_back( tempTextures[texIndices[i] - 1]);
-		 normals.push_back( tempNormals[normIndices[i] - 1]);
+		unsigned int vertexIndex = vertIndices[i],
+					 texIndex    = texIndices[i],
+					 normalIndex = normIndices[i];
+
+		glm::vec3 vertex  = tempVertices[vertexIndex - 1];
+		glm::vec2 texture = tempTextures[texIndex    - 1];
+		glm::vec3 normal  =  tempNormals[normalIndex - 1];
+
+		vertices.push_back(vertex);
+		textures.push_back(texture);
+		 normals.push_back(normal);
 	}
 
 	vertexCount = vertices.size();
@@ -220,7 +230,7 @@ OBJ::OBJ(const char *objName, const char *textureFile){
 		glEnableVertexAttribArray(1);
 		// normals
 		glBindBuffer(GL_ARRAY_BUFFER, normBuff);
-		glBufferData(GL_ARRAY_BUFFER,  normals.size() * sizeof(glm::vec2), &normals[0],  GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0],  GL_STATIC_DRAW);
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0 * sizeof(GLfloat), (GLvoid*)(0 * sizeof(GLfloat)));
 		glEnableVertexAttribArray(2);
 	glBindVertexArray(0);
@@ -234,7 +244,7 @@ void OBJ::draw(glm::mat4 &model, glm::mat4 &viewMat, glm::mat4 &projMat, GLuint 
 		//glUniform1f(glGetUniformLocation(shader, "shineDamper"),  shineDamper);
 		//glUniform1f(glGetUniformLocation(shader, "reflectivity"), reflectivity);
 		//glUniform4fv(glGetUniformLocation(shader, "plane"), 1, glm::value_ptr(clipPlane));
-		// glUniform3f(glGetUniformLocation(shader, "viewPos"), getPos().x, getPos().y, getPos().z);
+		//glUniform3f(glGetUniformLocation(shader, "viewPos"), getPos().x, getPos().y, getPos().z);
 		glUniformMatrix4fv(glGetUniformLocation(shader, "model"),   1, GL_FALSE, glm::value_ptr(model));
 		glUniformMatrix4fv(glGetUniformLocation(shader, "viewMat"), 1, GL_FALSE, glm::value_ptr(viewMat));
 		glUniformMatrix4fv(glGetUniformLocation(shader, "projMat"), 1, GL_FALSE, glm::value_ptr(projMat));

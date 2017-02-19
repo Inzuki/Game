@@ -83,7 +83,7 @@
     <ClCompile Include="OLD_MAIN.cpp" />
     <ClCompile Include="OLD_TERRAIN.cpp" />
     <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="ShadowMap.cpp" />
+    <ClCompile Include="Shadows.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Water.cpp" />
@@ -103,7 +103,7 @@
     <ClInclude Include="Lamp.h" />
     <ClInclude Include="OBJ.h" />
     <ClInclude Include="Shader.h" />
-    <ClInclude Include="ShadowMap.h" />
+    <ClInclude Include="Shadows.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Water.h" />

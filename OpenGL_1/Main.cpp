@@ -74,6 +74,7 @@ void RenderScene(
 			
 	// draw lamp post
 	model = glm::mat4();
+	model = glm::scale(model, glm::vec3(5.f));
 	model = glm::rotate(model, clk.getElapsedTime().asSeconds(), glm::vec3(0.f, 1.f, 0.f));
 	lamp_post.draw(model, getProjectionMatrix(), getViewMatrix(), lightingShader, clipPlane);
 
@@ -279,7 +280,7 @@ int main(){
 		glUseProgram(simpleDepthShader);
 		glUniformMatrix4fv(glGetUniformLocation(simpleDepthShader, "lightSpaceMat"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-		glCullFace(GL_FRONT);
+		//glCullFace(GL_FRONT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
             glClear(GL_DEPTH_BUFFER_BIT);
             RenderScene(

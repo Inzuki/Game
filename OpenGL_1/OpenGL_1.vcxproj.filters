@@ -57,13 +57,13 @@
     <ClCompile Include="MAIN-1-6-17.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="ShadowMap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MAIN-2-11-17.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
     <ClCompile Include="Assimp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Shadows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -115,7 +115,7 @@
     <ClInclude Include="Water.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ShadowMap.h">
+    <ClInclude Include="Shadows.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
